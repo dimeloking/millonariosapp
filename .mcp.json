@@ -1,0 +1,103 @@
+{
+  "mcpServers": {
+    "n8n": {
+      "type": "http",
+      "url": "https://n8n.srv1000134.hstgr.cloud/mcp-server/http",
+      "headers": {
+        "Authorization": "Bearer ${N8N_MCP_TOKEN}"
+      }
+    },
+    "n8n-docs": {
+      "type": "http",
+      "url": "https://api.n8n-mcp.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${N8N_API_KEY}"
+      }
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "shadcn@latest", "mcp"]
+    },
+    "ESLint": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "@eslint/mcp@latest"]
+    },
+    "next-devtools": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "next-devtools-mcp@latest"]
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_COPILOT_MCP_TOKEN}"
+      }
+    },
+    "clerk": {
+      "type": "http",
+      "url": "https://mcp.clerk.com/mcp"
+    },
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "chrome-devtools-mcp@latest"]
+    },
+    "neondatabase/mcp-server-neon": {
+      "type": "http",
+      "url": "https://mcp.neon.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer ${NEON_API_KEY}"
+      }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    },
+    "ollama-web-search": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "scripts/mcp/web-search-mcp.py"],
+      "env": {
+        "OLLAMA_API_KEY": "${OLLAMA_API_KEY}"
+      }
+    },
+    "openaiDeveloperDocs": {
+      "type": "http",
+      "url": "https://developers.openai.com/mcp"
+    },
+    "awslabs.s3-tables-mcp-server": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "tool",
+        "run",
+        "--from",
+        "awslabs.s3-tables-mcp-server@latest",
+        "awslabs.s3-tables-mcp-server.exe"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_PROFILE": "${AWS_PROFILE}",
+        "AWS_REGION": "${AWS_REGION}"
+      }
+    },
+    "snyk": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "snyk@latest", "mcp", "-t", "stdio"],
+      "env": {
+        "SNYK_TOKEN": "${SNYK_TOKEN}"
+      }
+    },
+    "Vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    }
+  }
+}

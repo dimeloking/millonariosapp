@@ -1,0 +1,684 @@
+{
+  // Editor Configuration
+  // Ignorar validación de errores JSON en mcp.json
+  "json.validate.enable": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": false,
+  "prettier.prettierPath": "./node_modules/prettier",
+  "prettier.enableDebugLogs": true,
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always",
+    "source.fixAll.eslint": "always"
+  },
+  "eslint.rules.customizations": [
+    {
+      "rule": "simple-import-sort/imports",
+      "severity": "off"
+    },
+    {
+      "rule": "simple-import-sort/exports",
+      "severity": "off"
+    }
+  ],
+  "editor.linkedEditing": true,
+  "editor.stickyScroll.enabled": true,
+  // Material Icon Theme - Custom Icons
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.files.associations": {
+    "*.css": "../../icons/reacttemplate",
+    "*.ts": "../../icons/file-ts-svgrepo-com",
+    "*.tsx": "../../icons/file-tsx-svgrepo-com"
+  },
+  // File Configuration
+  "files.autoSave": "afterDelay",
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.env": "env",
+    "*.env.production": "env",
+    "*.jsx": "javascriptreact",
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript",
+    "*.mjs": "javascript",
+    "*.js": "javascript",
+    "*.json": "json",
+    "*.svg": "svg",
+    "*.xml": "html",
+    "*.html": "html",
+    "*.config.mjs": "javascript",
+    "*.config.js": "javascript",
+    "*.config.ts": "typescript",
+    "*.md": "markdown",
+    "*.mdx": "mdx",
+    "*.lock": "json",
+    "*.sh": "shellscript",
+    "*.bash": "shell"
+  },
+  "files.watcherExclude": {
+    "/node_modules/": true,
+    "/dist/": true,
+    "/.git/": true
+  },
+  // Language-specific Formatters
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[env]": {
+    "editor.defaultFormatter": "IronGeek.vscode-env"
+  },
+  "[env.production]": {
+    "editor.defaultFormatter": "IronGeek.vscode-env"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[svg]": {
+    "editor.defaultFormatter": "jock.svg"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  // JavaScript / TypeScript Configuration (VS Code 1.110)
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsserver.maxMemory": 8192,
+  // npm + fnm workflow
+  "npm.packageManager": "npm",
+  "npm.autoDetect": "on",
+  "npm.scriptRunner": "terminal",
+  "npm.enableScriptExplorer": true,
+  // ESLint Configuration
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "eslint.runtime": "C:\\Users\\Usuario\\AppData\\Roaming\\fnm\\aliases\\default\\node.exe",
+  "eslint.run": "onType",
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.codeActionsOnSave.mode": "all",
+  // Tailwind CSS Configuration
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "tailwindCSS.classAttributes": ["class", "className", "classname", "ngClass", "classList"],
+  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]],
+  "css.validate": false,
+  "tailwindCSS.validate": true,
+  "tailwindCSS.showPixelEquivalents": true,
+  "tailwindCSS.colorDecorators": true,
+  "tailwindCSS.lint.cssConflict": "ignore",
+  "tailwindCSS.lint.invalidApply": "error",
+  "tailwindCSS.lint.invalidScreen": "error",
+  "tailwindCSS.lint.recommendedVariantOrder": "warning",
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
+  // HTML CSS Support Configuration
+  "css.enabledLanguages": [
+    "html",
+    "typescript",
+    "typescriptreact",
+    "javascript",
+    "javascriptreact"
+  ],
+  "css.styleSheets": [
+    "src/styles/**/*.css",
+    "src/app/**/*.css",
+    "src/components/**/*.css",
+    "**/${fileBasenameNoExtension}.css"
+  ],
+  // Search and Performance
+  "search.exclude": {
+    "/node_modules": true,
+    "/dist": true,
+    "/.git": true
+  },
+  "js/ts.suggest.completeFunctionCalls": true,
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": true,
+  "svg.preview.background": "editor",
+  "[ignore]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "chat.mcp.serverSampling": {
+    "artiefy/.vscode/mcp.json: next-devtools": {
+      "allowedModels": [
+        "copilot/claude-sonnet-4.5",
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: shadcn": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: neondatabase/mcp-server-neon": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: context7": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-opus-4.6",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: chrome-devtools": {
+      "allowedModels": [
+        "copilot/claude-sonnet-4.5",
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: Clerk": {
+      "allowedModels": [
+        "copilot/claude-sonnet-4.5",
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: n8n": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: n8n-docs": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: openaiDeveloperDocs": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-opus-4.6",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: aws-s3": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-opus-4.6",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: ESLint": {
+      "allowedModels": [
+        "copilot/gpt-5.3-codex",
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-opus-4.6",
+        "copilot/claude-sonnet-4",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5",
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "artiefy/.vscode/mcp.json: awslabs.s3-tables-mcp-server": {
+      "allowedModels": [
+        "copilot/auto",
+        "claude-code/claude-haiku-4.5",
+        "copilot/claude-haiku-4.5",
+        "claude-code/claude-opus-4.6",
+        "claude-code/claude-opus-4.6-fast",
+        "claude-code/claude-sonnet-4.6",
+        "copilot/gpt-4.1",
+        "copilot/gpt-4o",
+        "copilot/gpt-5-mini",
+        "copilot/oswe-vscode-prime"
+      ]
+    }
+  },
+  "chat.mcp.autostart": "onlyNew",
+  // VS Code 1.107 agent + MCP improvements
+  "chat.viewSessions.enabled": true,
+  "chat.viewSessions.orientation": "sideBySide",
+  // VS Code 1.110 recommended agent/browser settings
+  "chat.plugins.enabled": true,
+  "workbench.browser.enableChatTools": true,
+  "chat.editMode.hidden": true,
+  "chat.notifyWindowOnResponseReceived": "always",
+  "chat.notifyWindowOnConfirmation": "always",
+  "chat.tools.terminal.simpleCollapsible": true,
+  "workbench.notifications.position": "bottom-left",
+  "chat.agent.thinking.collapsedTools": "withThinking",
+  "chat.customAgentInSubagent.enabled": true,
+  "github.copilot.chat.cli.customAgents.enabled": true,
+  "github.copilot.chat.githubMcpServer.enabled": true,
+  "github.copilot.chat.githubMcpServer.readonly": false,
+  "chat.promptFilesLocations": {
+    ".github/prompts": true,
+    ".vscode/mcp.json": true,
+    "Docs": true,
+    ".github/instructions": true,
+    ".github/instructions/copilot-instructions.md": true
+  },
+  "chat.tools.edits.autoApprove": {
+    "**/*": true
+  },
+  "chat.tools.eligibleForAutoApproval": {},
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true,
+    "Docs": true
+  },
+  "chat.implicitContext.enabled": {
+    "panel": "always"
+  },
+  // Nuevas configuraciones recomendadas de VS Code 1.108
+  "chat.useAgentSkills": true,
+  "chat.agentSkillsLocations": {
+    ".github/skills": true,
+    ".claude/skills": true,
+    "~/.copilot/skills": true,
+    ".agents/skills": true
+  },
+  "chat.agentFilesLocations": {
+    ".github/agents": true,
+    ".agents": true,
+    "~/.vscode/agents": true
+  },
+  "github.copilot.chat.searchSubagent.enabled": true,
+  "github.copilot.chat.copilotMemory.enabled": true,
+  "chat.tools.autoExpandFailures": true,
+  "workbench.browser.openLocalhostLinks": true,
+  "inlineChat.defaultModel": "Auto (copilot)",
+  "github.copilot.chat.implementAgent.model": "Auto (copilot)",
+  "terminal.integrated.stickyScroll.ignoredCommands": [
+    "clear",
+    "copilot",
+    "claude",
+    "codex",
+    "gemini"
+  ],
+  "workbench.editor.restoreEditors": true,
+  "chat.restoreLastPanelSession": false,
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.terminal.autoApproveWorkspaceNpmScripts": true,
+  "chat.tools.terminal.preventShellHistory": true,
+  "breadcrumbs.symbolPathSeparator": "/",
+  "git.blame.ignoreWhitespace": true,
+  "git.blame.editorDecoration.disableHover": false,
+  "debug.breakpointsView.presentation": "tree",
+  // Vira theme customization (applied workspace-wide)
+  "editor.fontLigatures": "'ss01','ss05','dlig'",
+  "editor.fontFamily": "JetBrains Mono, 'Fira Code', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontSize": 14,
+  "editor.letterSpacing": 0.5,
+  "editor.lineHeight": 22,
+  "explorer.decorations.badges": false,
+  // Workbench / UI color adjustments (lighter foregrounds + selection/line highlight)
+  "workbench.colorCustomizations": {
+    "foreground": "#E6E6E6",
+    "editor.foreground": "#E6E6E6",
+    "sideBar.foreground": "#DADADA",
+    "activityBar.foreground": "#DADADA",
+    "editorLineNumber.foreground": "#9AA3B2",
+    "editorLineNumber.activeForeground": "#C8D1DA",
+    "editor.selectionBackground": "#3A3F4B",
+    "editor.selectionForeground": "#FFFFFF",
+    "editor.lineHighlightBackground": "#2B2F36",
+    "editorCursor.foreground": "#FFCC00",
+    "editorIndentGuide.background1": "#2f3540",
+    "editorIndentGuide.activeBackground1": "#39404a",
+    // Sólo línea vertical separadora entre pestañas
+    "tab.border": "#9AA3B2",
+    // Desactivar líneas horizontales bajo/arriba de las pestañas (usar transparente con alpha)
+    "editorGroupHeader.tabsBorder": "#00000000",
+    // Evitar que aparezca la línea horizontal inferior cuando una pestaña recibe focus
+    "tab.activeBorder": "#00000000",
+    "tab.unfocusedActiveBorder": "#00000000",
+    "tab.activeModifiedBorder": "#00000000"
+  },
+  // Token / syntax color customizations (TextMate scopes)
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "comment",
+        "settings": {
+          "foreground": "#7FB07F"
+        }
+      },
+      {
+        "scope": ["string", "constant.other.symbol"],
+        "settings": {
+          "foreground": "#e58de8"
+        }
+      },
+      {
+        "scope": ["keyword", "storage.type", "storage.modifier"],
+        "settings": {
+          "foreground": "#C792EA",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": ["entity.name.function", "support.function"],
+        "settings": {
+          "foreground": "#82AAFF"
+        }
+      },
+      {
+        "scope": ["variable", "variable.other.readwrite"],
+        "settings": {
+          "foreground": "#FFCB6B"
+        }
+      },
+      {
+        "scope": ["entity.name.type", "support.type"],
+        "settings": {
+          "foreground": "#FFCB6B",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": ["variable.other.property"],
+        "settings": {
+          "foreground": "#0f2fe1"
+        }
+      },
+      {
+        "scope": "keyword.control.return",
+        "settings": {
+          "foreground": "#C792EA",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": ["variable.other.constant", "constant.other.symbol"],
+        "settings": {
+          "foreground": "#82AAFF"
+        }
+      },
+      {
+        "scope": ["storage.type", "storage.modifier", "keyword.declaration"],
+        "settings": {
+          "foreground": "#FF6B6B",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": [
+          "storage.type.ts",
+          "storage.type.tsx",
+          "storage.type.js",
+          "storage.type.jsx",
+          "keyword.declaration.const",
+          "storage.type.const"
+        ],
+        "settings": {
+          "foreground": "#FF6B6B",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": ["variable.parameter"],
+        "settings": {
+          "foreground": "#FFB86C",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": ["storage.type", "support.type", "entity.name.type"],
+        "settings": {
+          "foreground": "#82AAFF",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": "constant.language.boolean",
+        "settings": {
+          "foreground": "#F78C6C"
+        }
+      },
+      {
+        "scope": "constant.numeric",
+        "settings": {
+          "foreground": "#F07178"
+        }
+      }
+    ],
+    "[Vira Carbon]": {
+      "textMateRules": [
+        {
+          "scope": ["*", "comment", "keyword", "storage", "variable.language", "entity.name.type"],
+          "settings": {
+            "fontStyle": ""
+          }
+        }
+      ]
+    }
+  },
+  // Semantic token colors (global)
+  "editor.semanticTokenColorCustomizations": {
+    "rules": {
+      "variable": {
+        "foreground": "#ff6600"
+      },
+      "property.readonly": {
+        "foreground": "#0055ff"
+      },
+      "function": {
+        "foreground": "#82AAFF"
+      }
+    }
+  },
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "cweijan.vscode-postgresql-client2"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "true": true
+  }
+}
