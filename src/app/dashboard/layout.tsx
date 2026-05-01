@@ -1,6 +1,9 @@
 import { Sidebar } from "@/components/sidebar";
+import { getDashboardSummary } from "@/lib/balance-data";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const summary = await getDashboardSummary();
+
   return (
     <div
       style={{
@@ -11,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         overflow: "hidden",
       }}
     >
-      <Sidebar />
+      <Sidebar summary={summary} />
       <main style={{ overflow: "auto", display: "flex", flexDirection: "column" }}>{children}</main>
     </div>
   );

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, real, date } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const envios = pgTable("envios", {
   id: serial("id").primaryKey(),
@@ -30,6 +30,28 @@ export const salidas = pgTable("salidas", {
   descripcion: text("descripcion").notNull(),
   categoria: text("categoria").notNull(), // Pagos | Créditos | Viajes | Impuestos | Otros
   valor: integer("valor").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const salidasExternas = pgTable("salidas_externas", {
+  id: serial("id").primaryKey(),
+  fecha: date("fecha").notNull(),
+  empleado: text("empleado").notNull(),
+  descripcion: text("descripcion").notNull(),
+  dolares: real("dolares").notNull().default(0),
+  florines: real("florines").notNull().default(0),
+  cambio: real("cambio").notNull(),
+  pesos: integer("pesos").notNull(),
+  envioId: integer("envio_id").references(() => envios.id),
+  entradaId: integer("entrada_id").references(() => entradas.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const pendientes = pgTable("pendientes", {
+  id: serial("id").primaryKey(),
+  fecha: date("fecha").notNull(),
+  texto: text("texto").notNull(),
+  completado: boolean("completado").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

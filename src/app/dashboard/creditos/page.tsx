@@ -1,3 +1,4 @@
+import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
 import { CREDITOS_4X1000, totalCreditos } from "@/lib/data";
 import { fmtCOP, fmtDate } from "@/lib/formatters";
 
@@ -24,9 +25,7 @@ export default function CreditosPage() {
           <h1>4×1000</h1>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost" style={{ fontSize: 12 }}>
-            Exportar
-          </button>
+          <ClientTopbarPendingBell />
           <button className="btn btn-primary" style={{ fontSize: 12 }}>
             + Nuevo crédito
           </button>

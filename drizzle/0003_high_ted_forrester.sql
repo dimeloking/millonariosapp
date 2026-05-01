@@ -1,0 +1,2 @@
+ALTER TABLE "salidas_externas" ADD COLUMN "envio_id" integer;--> statement-breakpoint
+ALTER TABLE "salidas_externas" ADD CONSTRAINT "salidas_externas_envio_id_envios_id_fk" FOREIGN KEY ("envio_id") REFERENCES "public"."envios"("id") ON DELETE no action ON UPDATE no action;

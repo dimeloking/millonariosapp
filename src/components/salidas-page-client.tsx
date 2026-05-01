@@ -1,18 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import {
   createSalidaAction,
   deleteSalidaAction,
   updateSalidaAction,
 } from "@/app/dashboard/actions";
+import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
 import { SalidaDrawer } from "@/components/salida-drawer";
-import { fmtCOP, fmtDate } from "@/lib/formatters";
 import type { Salida } from "@/lib/data";
+import { fmtCOP, fmtDate, fmtDayLabel } from "@/lib/formatters";
 import type { SalidaRecord } from "@/lib/movements-data";
 
-const CATEGORIA_COLORS: Record<Salida["categoria"], string> = {
+const CATEGORIES = ["Todas", "Pagos", "Créditos", "Viajes", "Impuestos", "Otros"] as const;
+const COLORS: Record<Salida["categoria"], string> = {
   Créditos: "#c5a3d6",
   Impuestos: "#e07575",
   Otros: "#858a93",
@@ -21,132 +23,111 @@ const CATEGORIA_COLORS: Record<Salida["categoria"], string> = {
 };
 
 export function SalidasPageClient({ initialRows }: { initialRows: SalidaRecord[] }) {
-  const [rows, setRows] = useState<SalidaRecord[]>(initialRows);
+  const [rows, setRows] = useState(initialRows);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Todas");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
   const [editingId, setEditingId] = useState<number | string | null>(null);
-
   const editingRow = rows.find((row) => row.id === editingId) ?? null;
-  const sorted = useMemo(() => [...rows].sort((a, b) => a.fecha.localeCompare(b.fecha)), [rows]);
 
-  const byCategoria = useMemo(() => {
-    const totals: Partial<Record<Salida["categoria"], number>> = {};
-
-    for (const row of rows) {
-      totals[row.categoria] = (totals[row.categoria] ?? 0) + row.valor;
+  const filtered = useMemo(
+    () =>
+      rows.filter((row) => {
+        const matchText = row.descripcion.toLowerCase().includes(search.toLowerCase());
+        const matchCategory = category === "Todas" || row.categoria === category;
+        const matchFrom = !dateFrom || row.fecha >= dateFrom;
+        const matchTo = !dateTo || row.fecha <= dateTo;
+        return matchText && matchCategory && matchFrom && matchTo;
+      }),
+    [category, dateFrom, dateTo, rows, search]
+  );
+  const byDay = useMemo(() => {
+    const groups: Record<string, SalidaRecord[]> = {};
+    for (const row of filtered) {
+      groups[row.fecha] ??= [];
+      groups[row.fecha].push(row);
     }
-
-    return totals;
-  }, [rows]);
-
-  const total = rows.reduce((sum, row) => sum + row.valor, 0);
+    return groups;
+  }, [filtered]);
+  const sortedDays = Object.keys(byDay).sort((a, b) => b.localeCompare(a));
+  const totalPages = Math.max(sortedDays.length, 1);
+  const currentPage = Math.min(page, totalPages);
+  const currentDay = sortedDays[currentPage - 1];
+  const currentRows = currentDay ? byDay[currentDay] : [];
+  const filteredTotal = filtered.reduce((sum, row) => sum + row.valor, 0);
+  const dayTotal = currentRows.reduce((sum, row) => sum + row.valor, 0);
 
   return (
     <>
       <div className="topbar">
         <div>
-          <div className="crumb">Periodo · Marzo 2026</div>
+          <div className="crumb">Movimiento · Gastos y retiros</div>
           <h1>Salidas</h1>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost" style={{ fontSize: 12 }}>
-            Exportar
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ fontSize: 12 }}
-            type="button"
-            onClick={() => setEditingId("new")}
-          >
-            + Nueva salida
-          </button>
+          <ClientTopbarPendingBell />
+          <button className="btn btn-primary" style={{ fontSize: 12 }} type="button" onClick={() => setEditingId("new")}>+ Nueva salida</button>
         </div>
       </div>
 
-      <div className="content" style={{ padding: "28px 32px", flex: 1, overflowY: "auto" }}>
-        <div
-          style={{
-            display: "grid",
-            gap: 10,
-            gridTemplateColumns: "repeat(5, 1fr)",
-            marginBottom: 20,
-          }}
-        >
-          {(Object.entries(byCategoria) as [Salida["categoria"], number][]).map(([cat, value]) => (
-            <div key={cat} className="kpi" style={{ padding: "12px 16px" }}>
-              <div className="label mono" style={{ color: CATEGORIA_COLORS[cat] }}>
-                {cat}
-              </div>
-              <div className="value serif" style={{ color: "#e07575", fontSize: 18 }}>
-                {fmtCOP(value)}
-              </div>
-            </div>
-          ))}
+      <div className="content" style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 20 }}>
+          <div className="kpi"><div className="label mono">Registros filtrados</div><div className="value mono" style={{ fontSize: 22 }}>{filtered.length}</div></div>
+          <div className="kpi accent"><div className="label mono">Total salidas filtrado</div><div className="value serif" style={{ color: "#e07575", fontSize: 22 }}>{fmtCOP(filteredTotal)}</div></div>
+          <div className="kpi"><div className="label mono">Categoría</div><div className="value serif" style={{ fontSize: 22 }}>{category}</div></div>
         </div>
 
-        <div className="panel" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="filter-bar" style={{ marginBottom: 16 }}>
+          <input className="search-input" placeholder="Buscar descripción..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
+          <div className="segmented">
+            {CATEGORIES.map((item) => (
+              <button key={item} className={category === item ? "active" : ""} type="button" onClick={() => { setCategory(item); setPage(1); }}>{item}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ alignItems: "end", display: "grid", gap: 12, gridTemplateColumns: "180px 180px auto", marginBottom: 18 }}>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}><label>Desde</label><input className="fin-input mono" type="date" value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(1); }} /></div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}><label>Hasta</label><input className="fin-input mono" type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); setPage(1); }} /></div>
+          <button className="btn btn-ghost" style={{ justifySelf: "start" }} type="button" onClick={() => { setDateFrom(""); setDateTo(""); setPage(1); }}>Limpiar fechas</button>
+        </div>
+
+        {currentDay ? (
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+            <div className="mono" style={{ color: "#858a93", fontSize: 11 }}>Día {currentPage} de {totalPages} · {fmtDayLabel(currentDay)}</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-ghost" disabled={currentPage === totalPages} type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>Siguiente</button>
+              <button className="btn btn-ghost" disabled={currentPage === 1} type="button" onClick={() => setPage((value) => Math.max(1, value - 1))}>Anterior</button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="panel" style={{ overflow: "hidden", padding: 0 }}>
           <div className="table-wrap">
             <table className="data">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Descripcion</th>
-                  <th>Categoria</th>
-                  <th style={{ textAlign: "right" }}>Valor</th>
-                  <th style={{ width: 44 }} />
-                </tr>
-              </thead>
+              <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th style={{ textAlign: "right" }}>Valor</th><th style={{ width: 44 }} /></tr></thead>
               <tbody>
-                {sorted.map((row) => (
-                  <tr key={String(row.id)}>
-                    <td
-                      className="mono"
-                      style={{ color: "#858a93", fontSize: 11, whiteSpace: "nowrap" }}
-                    >
-                      {fmtDate(row.fecha)}
-                    </td>
-                    <td className="td-name">{row.descripcion}</td>
-                    <td>
-                      <span
-                        className="tag"
-                        style={{
-                          background: `${CATEGORIA_COLORS[row.categoria]}18`,
-                          border: `1px solid ${CATEGORIA_COLORS[row.categoria]}30`,
-                          color: CATEGORIA_COLORS[row.categoria],
-                        }}
-                      >
-                        {row.categoria}
-                      </span>
-                    </td>
-                    <td className="num" style={{ color: "#e07575", fontWeight: 600 }}>
-                      {fmtCOP(row.valor)}
-                    </td>
-                    <td>
-                      <button
-                        className="icon-btn"
-                        type="button"
-                        aria-label={`Editar ${row.descripcion}`}
-                        onClick={() => setEditingId(row.id)}
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {currentDay ? (
+                  <Fragment key={currentDay}>
+                    {currentRows.map((row) => (
+                      <tr key={String(row.id)}>
+                        <td className="mono" style={{ color: "#858a93", fontSize: 11 }}>{fmtDate(row.fecha)}</td>
+                        <td className="td-name">{row.descripcion}</td>
+                        <td><span className="tag" style={{ background: `${COLORS[row.categoria]}18`, border: `1px solid ${COLORS[row.categoria]}30`, color: COLORS[row.categoria] }}>{row.categoria}</span></td>
+                        <td className="num" style={{ color: "#e07575", fontWeight: 600 }}>{fmtCOP(row.valor)}</td>
+                        <td><button className="icon-btn" type="button" onClick={() => setEditingId(row.id)}><MoreHorizontal size={16} /></button></td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                ) : (
+                  <tr><td colSpan={5} style={{ color: "#858a93", padding: 18 }}>Sin salidas para el filtro actual.</td></tr>
+                )}
               </tbody>
-              <tfoot>
-                <tr style={{ borderTop: "1px solid #2a2f38" }}>
-                  <td
-                    colSpan={3}
-                    className="mono"
-                    style={{ color: "#858a93", fontSize: 11, padding: "10px 16px" }}
-                  >
-                    TOTAL · {rows.length} registros
-                  </td>
-                  <td className="num" style={{ color: "#e07575", fontWeight: 700 }}>
-                    {fmtCOP(total)}
-                  </td>
-                  <td />
-                </tr>
-              </tfoot>
+              {currentRows.length > 0 ? (
+                <tfoot><tr style={{ borderTop: "1px solid #2a2f38" }}><td colSpan={3} className="mono" style={{ color: "#858a93", fontSize: 11, padding: "10px 16px" }}>TOTAL DEL DÍA · {currentRows.length} registros</td><td className="num" style={{ color: "#e07575", fontWeight: 700 }}>{fmtCOP(dayTotal)}</td><td /></tr></tfoot>
+              ) : null}
             </table>
           </div>
         </div>
@@ -156,37 +137,22 @@ export function SalidasPageClient({ initialRows }: { initialRows: SalidaRecord[]
         <SalidaDrawer
           mode={editingId === "new" ? "create" : "edit"}
           initialSalida={editingRow ?? undefined}
-          onClose={() => setEditingId(null)}
-          onDelete={
-            editingRow
-              ? async () => {
-                  if (typeof editingRow.id === "number") {
-                    await deleteSalidaAction(editingRow.id);
-                  }
-
-                  setRows((current) => current.filter((row) => row.id !== editingRow.id));
-                  setEditingId(null);
-                }
-              : undefined
-          }
-          onSave={async (salida) => {
+          onCloseAction={() => setEditingId(null)}
+          onDeleteAction={editingRow ? async () => {
+            if (typeof editingRow.id === "number") await deleteSalidaAction(editingRow.id);
+            setRows((current) => current.filter((row) => row.id !== editingRow.id));
+            setEditingId(null);
+          } : undefined}
+          onSaveAction={async (salida) => {
             if (editingId === "new") {
               const createdId = await createSalidaAction(salida);
-              setRows((current) => [
-                ...current,
-                { ...salida, id: createdId ?? `salida-${crypto.randomUUID()}` },
-              ]);
+              setRows((current) => [...current, { ...salida, id: createdId ?? `salida-${crypto.randomUUID()}` }]);
             } else if (editingRow) {
-              if (typeof editingRow.id === "number") {
-                await updateSalidaAction(editingRow.id, salida);
-              }
-
-              setRows((current) =>
-                current.map((row) => (row.id === editingRow.id ? { ...row, ...salida } : row)),
-              );
+              if (typeof editingRow.id === "number") await updateSalidaAction(editingRow.id, salida);
+              setRows((current) => current.map((row) => row.id === editingRow.id ? { ...row, ...salida } : row));
             }
-
             setEditingId(null);
+            setPage(1);
           }}
         />
       ) : null}

@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -148,11 +148,11 @@
 /* ── Utility classes matching the React app ─────────────────── */
 
 .mono {
-  font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 .serif {
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.01em;
 }
@@ -174,12 +174,20 @@
   justify-content: space-between;
 }
 .login-left::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(212, 165, 116, 0.08), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(122, 167, 217, 0.05), transparent 40%);
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(212, 165, 116, 0.08),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(122, 167, 217, 0.05),
+      transparent 40%
+    );
   pointer-events: none;
 }
 .login-brand {
@@ -199,14 +207,14 @@
   color: #0a0b0d;
   font-weight: 700;
   font-size: 18px;
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
 }
 .login-hero {
   position: relative;
   z-index: 1;
 }
 .login-hero .eyebrow {
-  font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -214,7 +222,7 @@
   margin-bottom: 20px;
 }
 .login-hero h1 {
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
   font-size: 64px;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -237,7 +245,7 @@
   gap: 32px;
   padding-top: 24px;
   border-top: 1px solid #22262d;
-  font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
 }
 .login-ticker div {
@@ -307,7 +315,7 @@
   border-color: #8a6d4a;
   background: #1c2026;
 }
-.field .ctrl [data-slot="input"] {
+.field .ctrl [data-slot='input'] {
   flex: 1;
   height: auto;
   min-width: 0;
@@ -322,11 +330,11 @@
   box-shadow: none;
   outline: 0;
 }
-.field .ctrl [data-slot="input"]::placeholder {
+.field .ctrl [data-slot='input']::placeholder {
   color: #858a93;
   opacity: 1;
 }
-.field .ctrl [data-slot="input"]:focus-visible {
+.field .ctrl [data-slot='input']:focus-visible {
   border-color: transparent;
   box-shadow: none;
   outline: 0;
@@ -335,7 +343,7 @@
   color: #5a5f68;
   flex-shrink: 0;
 }
-.login-eye[data-slot="button"] {
+.login-eye[data-slot='button'] {
   width: 18px;
   height: 18px;
   padding: 0;
@@ -343,7 +351,7 @@
   background: transparent;
   color: #5a5f68;
 }
-.login-eye[data-slot="button"]:hover {
+.login-eye[data-slot='button']:hover {
   background: transparent;
   color: #858a93;
 }
@@ -355,7 +363,7 @@
   margin: 0 0 20px;
   font-size: 12px;
 }
-.login-remember[data-slot="label"] {
+.login-remember[data-slot='label'] {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -366,7 +374,7 @@
   line-height: 1.5;
   margin: 0;
 }
-.login-checkbox[data-slot="checkbox"] {
+.login-checkbox[data-slot='checkbox'] {
   width: 14px;
   height: 14px;
   border-color: #d9aa73;
@@ -374,12 +382,12 @@
   background: #d4a574;
   color: #111316;
 }
-.login-checkbox[data-slot="checkbox"][data-checked] {
+.login-checkbox[data-slot='checkbox'][data-checked] {
   border-color: #d4a574;
   background: #d4a574;
   color: #111316;
 }
-.login-checkbox[data-slot="checkbox"] svg {
+.login-checkbox[data-slot='checkbox'] svg {
   width: 12px;
   height: 12px;
   stroke-width: 3;
@@ -418,7 +426,7 @@
   font-size: 12px;
   color: #5a5f68;
 }
-.login-submit[data-slot="button"] {
+.login-submit[data-slot='button'] {
   width: 100%;
   height: auto;
   border: 0;
@@ -431,10 +439,10 @@
   padding: 12px;
   line-height: 1.5;
 }
-.login-submit[data-slot="button"]:hover {
+.login-submit[data-slot='button']:hover {
   background: #dfb286;
 }
-.login-submit[data-slot="button"]:disabled {
+.login-submit[data-slot='button']:disabled {
   opacity: 0.7;
 }
 
@@ -494,6 +502,26 @@
 .icon-btn:hover {
   background: #1c2026;
   color: #e8eaed;
+}
+.topbar-bell-wrap {
+  position: relative;
+  z-index: 50;
+}
+.topbar-bell {
+  background: #16191e;
+  border: 1px solid #22262d;
+  border-radius: 6px;
+  color: #e8eaed;
+  display: grid;
+  height: 44px;
+  place-items: center;
+  position: relative;
+  width: 44px;
+}
+.topbar-bell:hover {
+  background: #1c2026;
+  border-color: #2d333b;
+  color: #ffffff;
 }
 
 /* Chips / Operator badges */
@@ -613,7 +641,7 @@
   margin-bottom: 10px;
 }
 .kpi .value {
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
   font-size: 32px;
   line-height: 1;
   letter-spacing: -0.01em;
@@ -640,7 +668,11 @@
   color: #e07575;
 }
 .kpi.accent {
-  background: linear-gradient(135deg, rgba(212, 165, 116, 0.08), rgba(212, 165, 116, 0.02));
+  background: linear-gradient(
+    135deg,
+    rgba(212, 165, 116, 0.08),
+    rgba(212, 165, 116, 0.02)
+  );
   border-color: rgba(212, 165, 116, 0.2);
 }
 .kpi.accent .value {
@@ -829,7 +861,7 @@ tr.daygroup td {
   align-items: center;
 }
 .drawer-header h3 {
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
   font-size: 22px;
   font-weight: 400;
 }
@@ -1056,10 +1088,14 @@ tr.daygroup td {
   overflow: hidden;
 }
 .balance-hero::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 100% 0%, rgba(212, 165, 116, 0.1), transparent 50%);
+  background: radial-gradient(
+    circle at 100% 0%,
+    rgba(212, 165, 116, 0.1),
+    transparent 50%
+  );
   pointer-events: none;
 }
 
@@ -1096,7 +1132,7 @@ tr.daygroup td {
   z-index: 10;
 }
 .topbar h1 {
-  font-family: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
   font-size: 26px;
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -1108,4 +1144,137 @@ tr.daygroup td {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 2px;
+}
+
+.dashboard-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(124px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.dashboard-shortcut {
+  aspect-ratio: 0.9 / 1;
+  background: #101215;
+  border: 1px solid #22262d;
+  border-radius: 8px;
+  color: #e8eaed;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 142px;
+  padding: 14px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.dashboard-shortcut:hover {
+  background: #16191e;
+  border-color: #2d333b;
+  transform: translateY(-1px);
+}
+.dashboard-shortcut-icon {
+  align-items: center;
+  background: rgba(212, 165, 116, 0.1);
+  border: 1px solid rgba(212, 165, 116, 0.22);
+  border-radius: 7px;
+  color: #d4a574;
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+.dashboard-shortcut-title {
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
+  font-size: 21px;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+.dashboard-shortcut-sub {
+  color: #858a93;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.dashboard-shortcut-footer {
+  align-items: center;
+  color: #d4a574;
+  display: flex;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 12px;
+  justify-content: flex-end;
+}
+.dashboard-chart-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dashboard-chart-summary {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+}
+.dashboard-chart-summary h2 {
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+}
+.dashboard-chart-kicker {
+  color: #5a5f68;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.dashboard-chart-total {
+  color: #858a93;
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+.dashboard-chart-total strong {
+  color: #e8eaed;
+  font-family: var(--font-instrument), 'Instrument Serif', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+.dashboard-chart-card {
+  background: #101215;
+  border: 1px solid #22262d;
+  border-radius: 8px;
+  gap: 8px;
+  padding-bottom: 0;
+  padding-top: 12px;
+}
+.dashboard-chart-card-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+}
+.dashboard-chart-select {
+  max-width: 180px;
+  padding: 7px 10px;
+}
+.dashboard-chart-footer {
+  align-items: center;
+  border-top: 1px solid #22262d;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 10px 16px;
+  width: 100%;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-shortcuts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-shortcuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

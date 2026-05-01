@@ -1,19 +1,25 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { X } from "lucide-react";
-import type { Salida } from "@/lib/data";
-import { fmtCOP } from "@/lib/formatters";
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import type { Salida } from '@/lib/data';
+import { fmtCOP } from '@/lib/formatters';
 
 type SalidaDrawerProps = {
   initialSalida?: Salida;
-  mode?: "create" | "edit";
-  onClose: () => void;
-  onDelete?: () => void | Promise<void>;
-  onSave?: (salida: Salida) => void | Promise<void>;
+  mode?: 'create' | 'edit';
+  onCloseAction: () => void;
+  onDeleteAction?: () => void | Promise<void>;
+  onSaveAction?: (salida: Salida) => void | Promise<void>;
 };
 
-const CATEGORIAS: Salida["categoria"][] = ["Pagos", "Créditos", "Viajes", "Impuestos", "Otros"];
+const CATEGORIAS: Salida['categoria'][] = [
+  'Pagos',
+  'Créditos',
+  'Viajes',
+  'Impuestos',
+  'Otros',
+];
 
 function todayISO() {
   const now = new Date();
@@ -22,44 +28,46 @@ function todayISO() {
 }
 
 function parseMoney(value: string) {
-  const cleaned = value.trim().replace(/[^\d.,-]/g, "");
+  const cleaned = value.trim().replace(/[^\d.,-]/g, '');
   if (!cleaned) return 0;
-  return Number(cleaned.replaceAll(",", "")) || 0;
+  return Number(cleaned.split(',').join('')) || 0;
 }
 
 function formatThousands(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return "";
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 export function SalidaDrawer({
   initialSalida,
-  mode = "create",
-  onClose,
-  onDelete,
-  onSave,
+  mode = 'create',
+  onCloseAction,
+  onDeleteAction,
+  onSaveAction,
 }: SalidaDrawerProps) {
   const [fecha, setFecha] = useState(initialSalida?.fecha ?? todayISO());
-  const [descripcion, setDescripcion] = useState(initialSalida?.descripcion ?? "");
-  const [categoria, setCategoria] = useState<Salida["categoria"]>(
-    initialSalida?.categoria ?? "Pagos",
+  const [descripcion, setDescripcion] = useState(
+    initialSalida?.descripcion ?? ''
+  );
+  const [categoria, setCategoria] = useState<Salida['categoria']>(
+    initialSalida?.categoria ?? 'Pagos'
   );
   const [valor, setValor] = useState(
-    initialSalida?.valor ? formatThousands(String(initialSalida.valor)) : "",
+    initialSalida?.valor ? formatThousands(String(initialSalida.valor)) : ''
   );
 
   const total = parseMoney(valor);
 
   const handleSave = async () => {
-    if (!onSave) {
-      onClose();
+    if (!onSaveAction) {
+      onCloseAction();
       return;
     }
 
-    await onSave({
+    await onSaveAction({
       categoria,
-      descripcion: descripcion.trim() || "Sin descripción",
+      descripcion: descripcion.trim() || 'Sin descripción',
       fecha,
       valor: total,
     });
@@ -67,7 +75,7 @@ export function SalidaDrawer({
 
   return (
     <>
-      <div className="drawer-backdrop" onClick={onClose} />
+      <div className="drawer-backdrop" onClick={onCloseAction} />
       <aside
         aria-labelledby="salida-drawer-title"
         aria-modal="true"
@@ -75,8 +83,14 @@ export function SalidaDrawer({
         role="dialog"
       >
         <div className="drawer-header">
-          <h3 id="salida-drawer-title">{mode === "edit" ? "Editar salida" : "Nueva salida"}</h3>
-          <button aria-label="Cerrar drawer" type="button" onClick={onClose}>
+          <h3 id="salida-drawer-title">
+            {mode === 'edit' ? 'Editar salida' : 'Nueva salida'}
+          </h3>
+          <button
+            aria-label="Cerrar drawer"
+            type="button"
+            onClick={onCloseAction}
+          >
             <X size={18} />
           </button>
         </div>
@@ -99,7 +113,9 @@ export function SalidaDrawer({
                 className="fin-input"
                 id="salida-categoria"
                 value={categoria}
-                onChange={(event) => setCategoria(event.target.value as Salida["categoria"])}
+                onChange={(event) =>
+                  setCategoria(event.target.value as Salida['categoria'])
+                }
               >
                 {CATEGORIAS.map((item) => (
                   <option key={item} value={item}>
@@ -130,7 +146,9 @@ export function SalidaDrawer({
                 id="salida-valor"
                 inputMode="decimal"
                 value={valor}
-                onChange={(event) => setValor(formatThousands(event.target.value))}
+                onChange={(event) =>
+                  setValor(formatThousands(event.target.value))
+                }
               />
               <span className="suffix">COP</span>
             </div>
@@ -150,19 +168,27 @@ export function SalidaDrawer({
         </div>
 
         <div className="drawer-footer">
-          {mode === "edit" && onDelete ? (
+          {mode === 'edit' && onDeleteAction ? (
             <button
               className="btn btn-ghost btn-danger"
               type="button"
-              onClick={() => void onDelete()}
+              onClick={() => void onDeleteAction()}
             >
               Eliminar
             </button>
           ) : null}
-          <button className="btn btn-ghost" type="button" onClick={onClose}>
+          <button
+            className="btn btn-ghost"
+            type="button"
+            onClick={onCloseAction}
+          >
             Cancelar
           </button>
-          <button className="btn btn-primary" type="button" onClick={() => void handleSave()}>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => void handleSave()}
+          >
             Guardar
           </button>
         </div>

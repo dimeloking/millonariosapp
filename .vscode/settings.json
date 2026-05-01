@@ -106,24 +106,32 @@
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.tsserver.maxMemory": 8192,
-  // npm + fnm workflow
-  "npm.packageManager": "npm",
-  "npm.autoDetect": "on",
-  "npm.scriptRunner": "terminal",
-  "npm.enableScriptExplorer": true,
   // ESLint Configuration
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "eslint.runtime": "C:\\Users\\Usuario\\AppData\\Roaming\\fnm\\aliases\\default\\node.exe",
   "eslint.run": "onType",
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
   "eslint.codeActionsOnSave.mode": "all",
   // Tailwind CSS Configuration
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
     "typescriptreact": "javascript"
   },
-  "tailwindCSS.classAttributes": ["class", "className", "classname", "ngClass", "classList"],
-  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]],
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "classname",
+    "ngClass",
+    "classList"
+  ],
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
   "css.validate": false,
   "tailwindCSS.validate": true,
   "tailwindCSS.showPixelEquivalents": true,
@@ -650,7 +658,14 @@
     "[Vira Carbon]": {
       "textMateRules": [
         {
-          "scope": ["*", "comment", "keyword", "storage", "variable.language", "entity.name.type"],
+          "scope": [
+            "*",
+            "comment",
+            "keyword",
+            "storage",
+            "variable.language",
+            "entity.name.type"
+          ],
           "settings": {
             "fontStyle": ""
           }
