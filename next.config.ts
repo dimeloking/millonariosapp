@@ -2,7 +2,7 @@ import "./src/env";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Env validation runs here during `next dev` and `next build`.
 };
 
 export default nextConfig;

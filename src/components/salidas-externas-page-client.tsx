@@ -69,11 +69,11 @@ export function SalidasExternasPageClient({
 
   const totalEnviadoUsd = filteredEnvios.reduce((sum, row) => sum + row.dolares, 0);
   const totalEnviadoFl = filteredEnvios.reduce((sum, row) => sum + row.florines, 0);
-  const totalDevueltoUsd = rows.reduce((sum, row) => sum + row.dolares, 0);
-  const totalDevueltoFl = rows.reduce((sum, row) => sum + row.florines, 0);
-  const totalDevueltoCop = rows.reduce((sum, row) => sum + row.pesos, 0);
-  const pendienteUsd = totalEnviadoUsd - totalDevueltoUsd;
-  const pendienteFl = totalEnviadoFl - totalDevueltoFl;
+  const totalRetornadoUsd = rows.reduce((sum, row) => sum + row.dolares, 0);
+  const totalRetornadoFl = rows.reduce((sum, row) => sum + row.florines, 0);
+  const totalRetornadoCop = rows.reduce((sum, row) => sum + row.pesos, 0);
+  const pendienteUsd = totalEnviadoUsd - totalRetornadoUsd;
+  const pendienteFl = totalEnviadoFl - totalRetornadoFl;
 
   async function devolverSaldo(envio: EnvioRecord) {
     if (typeof envio.id !== "number") return;
@@ -87,7 +87,7 @@ export function SalidasExternasPageClient({
         ...current,
         {
           cambio: envio.cambio,
-          descripcion: `Devolución saldo envío ${envio.nombre}`,
+          descripcion: `Retorno envío ${envio.nombre}`,
           dolares: envio.dolares,
           empleado: envio.operador,
           entradaId: created.entradaId,
@@ -144,13 +144,13 @@ export function SalidasExternasPageClient({
             </div>
           </div>
           <div className="kpi accent">
-            <div className="label mono">Devuelto Colombia</div>
+            <div className="label mono">Retornado Colombia</div>
             <div className="value serif" style={{ fontSize: 22 }}>
-              {fmtCOP(totalDevueltoCop)}
+              {fmtCOP(totalRetornadoCop)}
             </div>
           </div>
           <div className="kpi">
-            <div className="label mono">Devoluciones</div>
+            <div className="label mono">Retornos</div>
             <div className="value mono" style={{ fontSize: 22 }}>
               {rows.length}
             </div>
@@ -254,7 +254,7 @@ export function SalidasExternasPageClient({
                   <th style={{ textAlign: "right" }}>Pesos</th>
                   <th style={{ textAlign: "right" }}>Dólares</th>
                   <th style={{ textAlign: "right" }}>Ganancia</th>
-                  <th style={{ textAlign: "right" }}>Devuelve COP</th>
+                  <th style={{ textAlign: "right" }}>Retorna COP</th>
                   <th style={{ width: 150 }} />
                 </tr>
               </thead>
@@ -293,7 +293,7 @@ export function SalidasExternasPageClient({
                                 onClick={() => eliminarDevolucion(devolucion)}
                               >
                                 <Trash2 size={14} />
-                                Reversar
+                                Quitar
                               </button>
                             ) : (
                               <button
@@ -304,7 +304,7 @@ export function SalidasExternasPageClient({
                                 onClick={() => devolverSaldo(envio)}
                               >
                                 <RotateCcw size={14} />
-                                Devolver saldo
+                                Retornar
                               </button>
                             )}
                           </td>

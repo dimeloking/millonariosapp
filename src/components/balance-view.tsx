@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { updateSaldoBaseAction } from '@/app/dashboard/actions';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
-import type { BalancePeriodData } from '@/lib/balance-data';
+import { formatPeriodLabel, type BalancePeriodData } from '@/lib/balance-data';
 import { fmtCOP, fmtUSD } from '@/lib/formatters';
 
 type BalanceViewProps = {
@@ -56,6 +56,11 @@ export function BalanceView({ data }: BalanceViewProps) {
     (sum, item) => sum + item.total,
     0
   );
+  const retornosExternos = filteredSalidasExternas.reduce(
+    (sum, item) => sum + item.pesos,
+    0
+  );
+  const entradasDirectas = saldoActual - retornosExternos;
   const ganancias = filteredEnvios.reduce(
     (sum, item) => sum + item.ganancia,
     0
@@ -93,6 +98,7 @@ export function BalanceView({ data }: BalanceViewProps) {
       ...filteredEnvios.map((item) => item.fecha),
       ...filteredEntradas.map((item) => item.fecha),
       ...filteredSalidas.map((item) => item.fecha),
+      ...filteredSalidasExternas.map((item) => item.fecha),
     ])
   )
     .sort()
@@ -101,6 +107,7 @@ export function BalanceView({ data }: BalanceViewProps) {
         entradas: number;
         envios: number;
         fecha: string;
+        retornos: number;
         saldo: number;
         salidas: number;
       }[]
@@ -114,28 +121,30 @@ export function BalanceView({ data }: BalanceViewProps) {
       const enviosDia = filteredEnvios
         .filter((item) => item.fecha === fecha)
         .reduce((sum, item) => sum + item.pesos, 0);
+      const retornosDia = filteredSalidasExternas
+        .filter((item) => item.fecha === fecha)
+        .reduce((sum, item) => sum + item.pesos, 0);
+      const entradasDirectasDia = entradasDia - retornosDia;
       const saldoPrevio = acc.length > 0 ? acc[acc.length - 1].saldo : saldoAnterior;
 
       acc.push({
-        entradas: entradasDia,
+        entradas: entradasDirectasDia,
         envios: enviosDia,
         fecha,
+        retornos: retornosDia,
         saldo: saldoPrevio + entradasDia - salidasDia - enviosDia,
         salidas: salidasDia,
       });
 
       return acc;
     }, []);
-  const devueltoColombia = filteredSalidasExternas.reduce(
-    (sum, item) => sum + item.pesos,
-    0
-  );
+  const devueltoColombia = retornosExternos;
 
   return (
     <>
       <div className="topbar">
         <div>
-          <div className="crumb">Período · {data.periodo.mes}</div>
+          <div className="crumb">Período · {formatPeriodLabel(data.periodo.mes)}</div>
           <h1>Balance</h1>
         </div>
         <div style={{ marginLeft: 'auto' }}>
@@ -235,7 +244,7 @@ export function BalanceView({ data }: BalanceViewProps) {
           </div>
           <div className="mono" style={{ color: '#858a93', fontSize: 11 }}>
             Este es el saldo con el que arranca el período. El saldo actual se
-            calcula como saldo base + entradas - salidas - envíos.
+            calcula como saldo base + entradas + retornos ext. - salidas - envíos.
           </div>
           <button className="btn btn-primary" disabled={savingSaldoBase} type="submit">
             {savingSaldoBase ? 'Guardando...' : 'Guardar saldo base'}
@@ -250,20 +259,21 @@ export function BalanceView({ data }: BalanceViewProps) {
             <div>
               <div className="panel-title">Resumen mensual</div>
               <div className="panel-sub">
-                Saldo anterior + saldo actual - gastos - total envíos
+                Saldo anterior + entradas + retornos ext. - gastos - envíos
               </div>
             </div>
           </div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+              gridTemplateColumns: 'repeat(8, minmax(0, 1fr))',
               borderTop: '1px solid #22262d',
             }}
           >
             {[
               { label: 'Saldo anterior', value: fmtCOP(saldoAnterior) },
-              { label: 'Saldo actual', value: fmtCOP(saldoActual) },
+              { label: 'Entradas', value: fmtCOP(entradasDirectas) },
+              { label: 'Retornos ext.', value: fmtCOP(retornosExternos) },
               { label: 'Ganancias', value: fmtCOP(ganancias) },
               { label: 'Gastos', value: fmtCOP(gastos), danger: true },
               { label: 'Total envios', value: fmtCOP(totalEnvios) },
@@ -329,8 +339,12 @@ export function BalanceView({ data }: BalanceViewProps) {
                   <span className="v">{fmtCOP(saldoAnterior)}</span>
                 </div>
                 <div className="calc-row">
-                  <span className="k">Entradas</span>
-                  <span className="v">{fmtCOP(saldoActual)}</span>
+                  <span className="k">Entradas directas</span>
+                  <span className="v">{fmtCOP(entradasDirectas)}</span>
+                </div>
+                <div className="calc-row">
+                  <span className="k">Retornos ext.</span>
+                  <span className="v">{fmtCOP(retornosExternos)}</span>
                 </div>
                 <div className="calc-row">
                   <span className="k">Salidas + envíos</span>
@@ -348,7 +362,7 @@ export function BalanceView({ data }: BalanceViewProps) {
             <div className="panel-header">
               <div>
                 <div className="panel-title">Aruba · USD/FL</div>
-                <div className="panel-sub">Enviado menos devuelto</div>
+                <div className="panel-sub">Enviado menos retornado</div>
               </div>
             </div>
             <div style={{ padding: '14px 18px' }}>
@@ -366,7 +380,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                   <span className="v">{cambioPromedio > 0 ? fmtCOP(cambioPromedio) : '-'}</span>
                 </div>
                 <div className="calc-row total">
-                  <span className="k">Devuelto a Colombia</span>
+                  <span className="k">Retornado a Colombia</span>
                   <span className="v">{fmtCOP(devueltoColombia)}</span>
                 </div>
               </div>
@@ -378,7 +392,7 @@ export function BalanceView({ data }: BalanceViewProps) {
           <div className="panel-header">
             <div>
               <div className="panel-title">Saldo actual por día</div>
-              <div className="panel-sub">Saldo anterior + entradas - salidas - envíos</div>
+              <div className="panel-sub">Saldo anterior + entradas + retornos ext. - salidas - envíos</div>
             </div>
           </div>
           <div className="table-wrap">
@@ -387,6 +401,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                 <tr>
                   <th>Fecha</th>
                   <th style={{ textAlign: 'right' }}>Entradas</th>
+                  <th style={{ textAlign: 'right' }}>Retornos ext.</th>
                   <th style={{ textAlign: 'right' }}>Salidas</th>
                   <th style={{ textAlign: 'right' }}>Envíos</th>
                   <th style={{ textAlign: 'right' }}>Saldo cierre</th>
@@ -399,6 +414,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                       {day.fecha}
                     </td>
                     <td className="num pos">{fmtCOP(day.entradas)}</td>
+                    <td className="num pos">{fmtCOP(day.retornos)}</td>
                     <td className="num" style={{ color: '#e07575' }}>{fmtCOP(day.salidas)}</td>
                     <td className="num">{fmtCOP(day.envios)}</td>
                     <td className="num" style={{ color: '#d4a574', fontWeight: 700 }}>
@@ -408,7 +424,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                 ))}
                 {flujoDiario.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ color: '#858a93', padding: 18 }}>
+                    <td colSpan={6} style={{ color: '#858a93', padding: 18 }}>
                       Sin movimientos en el rango seleccionado.
                     </td>
                   </tr>

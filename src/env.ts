@@ -3,8 +3,8 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    CLERK_SECRET_KEY: z.string().min(1).optional(),
-    DATABASE_URL: z.string().url().optional(),
+    CLERK_SECRET_KEY: z.string().min(1),
+    DATABASE_URL: z.string().url(),
     AWS_REGION: z.string().min(1).default("us-east-1"),
     AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
@@ -14,7 +14,7 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().default("/sign-in"),
     NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string().default("/dashboard"),
   },

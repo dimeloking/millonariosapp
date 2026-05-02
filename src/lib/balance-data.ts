@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   creditos4x1000,
@@ -49,24 +49,10 @@ function getCurrentPeriod(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-async function getLatestPeriod(): Promise<string> {
-  try {
-    const [latest] = await db
-      .select()
-      .from(periodos)
-      .orderBy(desc(periodos.mes))
-      .limit(1);
-
-    return latest?.mes ?? getCurrentPeriod();
-  } catch {
-    return getCurrentPeriod();
-  }
-}
-
 export async function getBalancePeriodData(
   mes?: string
 ): Promise<BalancePeriodData> {
-  const selectedMes = mes ?? (await getLatestPeriod());
+  const selectedMes = mes ?? getCurrentPeriod();
 
   try {
     const [periodo] = await db
@@ -93,6 +79,15 @@ export async function getBalancePeriodData(
     const periodEnvios = dbEnvios.filter((item) =>
       String(item.fecha).startsWith(monthPrefix)
     );
+    const periodEntradas = dbEntradas.filter((item) =>
+      String(item.fecha).startsWith(monthPrefix)
+    );
+    const periodSalidas = dbSalidas.filter((item) =>
+      String(item.fecha).startsWith(monthPrefix)
+    );
+    const periodSalidasExternas = dbSalidasExternas.filter((item) =>
+      String(item.fecha).startsWith(monthPrefix)
+    );
     const periodTotalDolares = periodEnvios.reduce(
       (sum, item) => sum + item.dolares,
       0
@@ -111,14 +106,14 @@ export async function getBalancePeriodData(
 
     return {
       cambioPromedio: periodCambioPromedio,
-      entradas: dbEntradas.map((item) => ({
+      entradas: periodEntradas.map((item) => ({
         cambio: item.cambio,
         descripcion: item.descripcion,
         entradaDolar: item.entradaDolar,
         fecha: String(item.fecha),
         total: item.total,
       })),
-      envios: dbEnvios.map((item) => ({
+      envios: periodEnvios.map((item) => ({
         cambio: item.cambio,
         dolares: item.dolares,
         fecha: String(item.fecha),
@@ -135,13 +130,13 @@ export async function getBalancePeriodData(
         saldoAnterior: periodo?.saldoAnterior ?? 0,
         totalDolares: periodTotalDolares,
       },
-      salidas: dbSalidas.map((item) => ({
+      salidas: periodSalidas.map((item) => ({
         categoria: item.categoria as Salida["categoria"],
         descripcion: item.descripcion,
         fecha: String(item.fecha),
         valor: item.valor,
       })),
-      salidasExternas: dbSalidasExternas.map((item) => ({
+      salidasExternas: periodSalidasExternas.map((item) => ({
         cambio: item.cambio,
         descripcion: item.descripcion,
         dolares: item.dolares,
@@ -242,7 +237,7 @@ function getEmptyBalancePeriodData(mes: string): BalancePeriodData {
   };
 }
 
-function formatPeriodLabel(mes: string) {
+export function formatPeriodLabel(mes: string) {
   const [year, month] = mes.split("-").map(Number);
   if (!year || !month) return mes;
 

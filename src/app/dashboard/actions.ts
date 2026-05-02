@@ -194,7 +194,7 @@ export async function devolverEnvioSaldoAction(id: number) {
   }
 
   const totalDevuelto = Math.round(envio.pesos + envio.ganancia);
-  const descripcion = `Devolución saldo envío ${envio.nombre}`;
+  const descripcion = `Retorno envío ${envio.nombre}`;
 
   const [createdEntrada] = await db
     .insert(entradas)
