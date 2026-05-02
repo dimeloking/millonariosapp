@@ -10,6 +10,7 @@ import {
   salidasExternas,
 } from "@/db/schema";
 import type { Entrada, Envio, Salida } from "@/lib/data";
+import { formatPeriodLabel } from "@/lib/formatters";
 import type { SalidaExternaRecord } from "@/lib/movements-data";
 
 export type DashboardSummary = {
@@ -235,16 +236,4 @@ function getEmptyBalancePeriodData(mes: string): BalancePeriodData {
     salidas: [],
     salidasExternas: [],
   };
-}
-
-export function formatPeriodLabel(mes: string) {
-  const [year, month] = mes.split("-").map(Number);
-  if (!year || !month) return mes;
-
-  const label = new Intl.DateTimeFormat("es-CO", {
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, 1));
-
-  return `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
 }

@@ -52,3 +52,15 @@ export function fmtRate(n: number) {
     maximumFractionDigits: 2,
   }).format(n);
 }
+
+export function formatPeriodLabel(mes: string) {
+  const [year, month] = mes.split("-").map(Number);
+  if (!year || !month) return mes;
+
+  const label = new Intl.DateTimeFormat("es-CO", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month - 1, 1));
+
+  return `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
+}

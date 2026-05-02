@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react';
 import { updateSaldoBaseAction } from '@/app/dashboard/actions';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
-import { formatPeriodLabel, type BalancePeriodData } from '@/lib/balance-data';
-import { fmtCOP, fmtUSD } from '@/lib/formatters';
+import type { BalancePeriodData } from '@/lib/balance-data';
+import { fmtCOP, fmtUSD, formatPeriodLabel } from '@/lib/formatters';
 
 type BalanceViewProps = {
   data: BalancePeriodData;
