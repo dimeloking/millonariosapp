@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { Entrada } from '@/lib/data';
-import { fmtCOP, fmtNum, fmtUSD } from '@/lib/formatters';
+import { fmtCOP, fmtUSD } from '@/lib/formatters';
 
 type EntradaDrawerProps = {
   initialEntrada?: Entrada;
@@ -25,6 +25,26 @@ function formatThousands(value: string) {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+function formatAmount(value: string, moneda: Entrada['moneda']) {
+  if (moneda === 'COP') return formatThousands(value);
+
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const [whole = '', ...decimalParts] = cleaned.split('.');
+  const decimal = decimalParts.join('').slice(0, 2);
+  const formattedWhole = formatThousands(whole);
+
+  if (cleaned.includes('.')) return `${formattedWhole}.${decimal}`;
+  return formattedWhole;
+}
+
+function formatAmountForCurrency(value: string, moneda: Entrada['moneda']) {
+  const parsed = parseMoney(value);
+  if (!parsed) return '';
+  return moneda === 'COP'
+    ? formatThousands(String(Math.round(parsed)))
+    : formatAmount(String(parsed), 'USD');
+}
+
 function todayISO() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
@@ -38,33 +58,24 @@ export function EntradaDrawer({
   onDeleteAction,
   onSaveAction,
 }: EntradaDrawerProps) {
+  const initialMoneda =
+    initialEntrada?.moneda ?? (initialEntrada?.entradaDolar ? 'USD' : 'COP');
   const [fecha, setFecha] = useState(initialEntrada?.fecha ?? todayISO());
   const [descripcion, setDescripcion] = useState(
     initialEntrada?.descripcion ?? ''
   );
-  const [entradaDolar, setEntradaDolar] = useState(
-    initialEntrada?.entradaDolar ? String(initialEntrada.entradaDolar) : ''
-  );
-  const [cambio, setCambio] = useState(
-    initialEntrada?.cambio ? String(initialEntrada.cambio) : ''
-  );
-  const [total, setTotal] = useState(
-    initialEntrada?.total ? formatThousands(String(initialEntrada.total)) : ''
+  const [moneda, setMoneda] = useState<Entrada['moneda']>(initialMoneda);
+  const [valor, setValor] = useState(
+    initialMoneda === 'USD'
+      ? initialEntrada?.entradaDolar
+        ? formatAmount(String(initialEntrada.entradaDolar), 'USD')
+        : ''
+      : initialEntrada?.total
+        ? formatAmount(String(initialEntrada.total), 'COP')
+        : ''
   );
 
-  const calculations = useMemo(() => {
-    const usd = parseMoney(entradaDolar);
-    const tasa = parseMoney(cambio);
-    const manualTotal = parseMoney(total);
-    const calculatedTotal =
-      usd > 0 && tasa > 0 ? Math.round(usd * tasa) : manualTotal;
-
-    return {
-      tasa,
-      total: calculatedTotal,
-      usd,
-    };
-  }, [cambio, entradaDolar, total]);
+  const total = parseMoney(valor);
 
   const handleSave = async () => {
     if (!onSaveAction) {
@@ -73,11 +84,12 @@ export function EntradaDrawer({
     }
 
     await onSaveAction({
-      cambio: calculations.tasa > 0 ? calculations.tasa : null,
+      cambio: null,
       descripcion: descripcion.trim() || 'Sin descripción',
-      entradaDolar: calculations.usd > 0 ? calculations.usd : null,
+      entradaDolar: moneda === 'USD' && total > 0 ? total : null,
       fecha,
-      total: calculations.total,
+      moneda,
+      total: moneda === 'COP' ? Math.round(total) : 0,
     });
   };
 
@@ -125,82 +137,56 @@ export function EntradaDrawer({
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-field">
-              <label htmlFor="entrada-usd">Entrada dólar</label>
-              <div className="input-group">
-                <input
-                  className="fin-input mono"
-                  id="entrada-usd"
-                  inputMode="decimal"
-                  value={entradaDolar}
-                  onChange={(event) => setEntradaDolar(event.target.value)}
-                />
-                <span className="suffix">USD</span>
-              </div>
-            </div>
-            <div className="form-field">
-              <label htmlFor="entrada-cambio">Cambio dólar</label>
-              <div className="input-group">
-                <input
-                  className="fin-input mono"
-                  id="entrada-cambio"
-                  inputMode="decimal"
-                  value={cambio}
-                  onChange={(event) => setCambio(event.target.value)}
-                />
-                <span className="suffix">COP</span>
-              </div>
+          <div className="form-field drawer-field">
+            <label>Moneda</label>
+            <div className="segmented">
+              {(['COP', 'USD'] as const).map((item) => (
+                <button
+                  className={moneda === item ? 'active' : ''}
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    setMoneda(item);
+                    setValor((current) =>
+                      formatAmountForCurrency(current, item)
+                    );
+                  }}
+                >
+                  {item === 'COP' ? 'Pesos' : 'Dólares'}
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="form-field drawer-field">
-            <label
-              className={
-                calculations.usd > 0 && calculations.tasa > 0
-                  ? ''
-                  : 'manual-label'
-              }
-              htmlFor="entrada-total"
-            >
-              Total entrada
+            <label className="manual-label" htmlFor="entrada-valor">
+              Valor entrada
             </label>
             <div className="input-group">
               <input
-                className={`fin-input mono ${calculations.usd > 0 && calculations.tasa > 0 ? 'readonly' : ''}`}
-                id="entrada-total"
+                className="fin-input mono"
+                id="entrada-valor"
                 inputMode="decimal"
-                readOnly={calculations.usd > 0 && calculations.tasa > 0}
-                value={
-                  calculations.usd > 0 && calculations.tasa > 0
-                    ? formatThousands(String(calculations.total))
-                    : total
-                }
+                value={valor}
                 onChange={(event) =>
-                  setTotal(formatThousands(event.target.value))
+                  setValor(formatAmount(event.target.value, moneda))
                 }
               />
-              <span className="suffix">COP</span>
+              <span className="suffix">{moneda}</span>
             </div>
           </div>
 
           <div className="calc-box">
             <div className="calc-label">Resumen de entrada</div>
             <div className="calc-row">
-              <span className="k">USD recibidos</span>
-              <span className="v">
-                {calculations.usd > 0 ? fmtUSD(calculations.usd) : '-'}
-              </span>
-            </div>
-            <div className="calc-row">
-              <span className="k">Cambio aplicado</span>
-              <span className="v">
-                {calculations.tasa > 0 ? fmtNum(calculations.tasa) : '-'}
-              </span>
+              <span className="k">Moneda</span>
+              <span className="v">{moneda}</span>
             </div>
             <div className="calc-row total">
               <span className="k">Total entrada</span>
-              <span className="v">{fmtCOP(calculations.total)}</span>
+              <span className="v">
+                {moneda === 'COP' ? fmtCOP(total) : fmtUSD(total)}
+              </span>
             </div>
           </div>
         </div>

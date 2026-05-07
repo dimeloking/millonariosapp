@@ -28,6 +28,13 @@ Stack fijo:
 
 No migrar a otro framework o stack salvo pedido explicito.
 
+## Contenido de servicios y areas
+
+- Toda la informacion visible de paginas de servicios y areas debe salir de los archivos `.md` en `doc/info-areas` y `doc/infor_services`.
+- No inventar, reemplazar ni cambiar informacion de esos `.md` salvo pedido explicito del usuario.
+- Si una pagina de area o servicio necesita nuevo texto, primero actualizar el `.md` correspondiente y luego renderizarlo desde ahi.
+- Las imagenes y estilos pueden ajustarse en componentes, pero el contenido textual base debe respetar los `.md`.
+
 ## Uso de skills y MCP
 
 - No usar skills ni MCP por defecto.
@@ -38,7 +45,8 @@ No migrar a otro framework o stack salvo pedido explicito.
 ## Validaciones
 
 - No ejecutar `npm run build`, `npm run lint`, `npm run typecheck` ni pruebas globales por defecto.
-- Ejecutar validaciones completas solo si el usuario lo pide explicitamente o si el cambio toca build, dependencias, auth, migraciones, seguridad o logica critica de datos.
+- No ejecutar `npm run check`, `npm run lint:fix`, `npm run format:check` ni validaciones equivalentes salvo pedido explicito del usuario.
+- Ejecutar validaciones completas solo si el usuario lo pide explicitamente.
 - Para cambios pequenos, preferir inspeccion puntual del archivo afectado.
 
 ## Base de datos y seguridad

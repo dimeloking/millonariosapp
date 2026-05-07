@@ -8,7 +8,8 @@ import {
   updatePendienteStatusAction,
 } from "@/app/dashboard/actions";
 import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
-import { fmtDate, fmtDayLabel } from "@/lib/formatters";
+import { DayPaginationHeader } from "@/components/day-pagination-header";
+import { fmtDate } from "@/lib/formatters";
 import type { PendienteRecord } from "@/lib/movements-data";
 
 const STATES = ["Todos", "Abiertos", "Completados"] as const;
@@ -228,9 +229,7 @@ export function PendientesPageClient({
 
         {sortedDays.length > 0 ? (
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <div className="mono" style={{ color: "#858a93", fontSize: 11 }}>
-              Día {currentPage} de {totalPages} · {fmtDayLabel(currentDay)}
-            </div>
+            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 className="btn btn-ghost"

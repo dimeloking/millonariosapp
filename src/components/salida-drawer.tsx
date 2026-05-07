@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { Salida } from '@/lib/data';
-import { fmtCOP } from '@/lib/formatters';
+import { fmtCOP, fmtUSD } from '@/lib/formatters';
 
 type SalidaDrawerProps = {
   initialSalida?: Salida;
@@ -39,6 +39,26 @@ function formatThousands(value: string) {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+function formatAmount(value: string, moneda: Salida['moneda']) {
+  if (moneda === 'COP') return formatThousands(value);
+
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const [whole = '', ...decimalParts] = cleaned.split('.');
+  const decimal = decimalParts.join('').slice(0, 2);
+  const formattedWhole = formatThousands(whole);
+
+  if (cleaned.includes('.')) return `${formattedWhole}.${decimal}`;
+  return formattedWhole;
+}
+
+function formatAmountForCurrency(value: string, moneda: Salida['moneda']) {
+  const parsed = parseMoney(value);
+  if (!parsed) return '';
+  return moneda === 'COP'
+    ? formatThousands(String(Math.round(parsed)))
+    : formatAmount(String(parsed), 'USD');
+}
+
 export function SalidaDrawer({
   initialSalida,
   mode = 'create',
@@ -46,6 +66,8 @@ export function SalidaDrawer({
   onDeleteAction,
   onSaveAction,
 }: SalidaDrawerProps) {
+  const initialMoneda =
+    initialSalida?.moneda ?? (initialSalida?.valorDolar ? 'USD' : 'COP');
   const [fecha, setFecha] = useState(initialSalida?.fecha ?? todayISO());
   const [descripcion, setDescripcion] = useState(
     initialSalida?.descripcion ?? ''
@@ -53,8 +75,15 @@ export function SalidaDrawer({
   const [categoria, setCategoria] = useState<Salida['categoria']>(
     initialSalida?.categoria ?? 'Pagos'
   );
+  const [moneda, setMoneda] = useState<Salida['moneda']>(initialMoneda);
   const [valor, setValor] = useState(
-    initialSalida?.valor ? formatThousands(String(initialSalida.valor)) : ''
+    initialMoneda === 'USD'
+      ? initialSalida?.valorDolar
+        ? formatAmount(String(initialSalida.valorDolar), 'USD')
+        : ''
+      : initialSalida?.valor
+        ? formatAmount(String(initialSalida.valor), 'COP')
+        : ''
   );
 
   const total = parseMoney(valor);
@@ -69,7 +98,9 @@ export function SalidaDrawer({
       categoria,
       descripcion: descripcion.trim() || 'Sin descripción',
       fecha,
-      valor: total,
+      moneda,
+      valor: moneda === 'COP' ? Math.round(total) : 0,
+      valorDolar: moneda === 'USD' && total > 0 ? total : null,
     });
   };
 
@@ -137,6 +168,27 @@ export function SalidaDrawer({
           </div>
 
           <div className="form-field drawer-field">
+            <label>Moneda</label>
+            <div className="segmented">
+              {(['COP', 'USD'] as const).map((item) => (
+                <button
+                  className={moneda === item ? 'active' : ''}
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    setMoneda(item);
+                    setValor((current) =>
+                      formatAmountForCurrency(current, item)
+                    );
+                  }}
+                >
+                  {item === 'COP' ? 'Pesos' : 'Dólares'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-field drawer-field">
             <label className="manual-label" htmlFor="salida-valor">
               Valor
             </label>
@@ -147,10 +199,10 @@ export function SalidaDrawer({
                 inputMode="decimal"
                 value={valor}
                 onChange={(event) =>
-                  setValor(formatThousands(event.target.value))
+                  setValor(formatAmount(event.target.value, moneda))
                 }
               />
-              <span className="suffix">COP</span>
+              <span className="suffix">{moneda}</span>
             </div>
           </div>
 
@@ -162,7 +214,9 @@ export function SalidaDrawer({
             </div>
             <div className="calc-row total">
               <span className="k">Total salida</span>
-              <span className="v">{fmtCOP(total)}</span>
+              <span className="v">
+                {moneda === 'COP' ? fmtCOP(total) : fmtUSD(total)}
+              </span>
             </div>
           </div>
         </div>

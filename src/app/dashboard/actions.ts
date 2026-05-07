@@ -1,20 +1,27 @@
-"use server";
+'use server';
 
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { db } from "@/db";
-import { entradas, envios, pendientes, periodos, salidas, salidasExternas } from "@/db/schema";
-import type { Entrada, Envio, Salida } from "@/lib/data";
-import type { SalidaExternaRecord } from "@/lib/movements-data";
+import { eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
+import { db } from '@/db';
+import {
+  entradas,
+  envios,
+  pendientes,
+  periodos,
+  salidas,
+  salidasExternas,
+} from '@/db/schema';
+import type { Entrada, Envio, Salida } from '@/lib/data';
+import type { SalidaExternaRecord } from '@/lib/movements-data';
 
 function revalidateDashboardPaths() {
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/balance");
-  revalidatePath("/dashboard/envios");
-  revalidatePath("/dashboard/entradas");
-  revalidatePath("/dashboard/salidas");
-  revalidatePath("/dashboard/salidas-ext");
-  revalidatePath("/dashboard/pendientes");
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/balance');
+  revalidatePath('/dashboard/envios');
+  revalidatePath('/dashboard/entradas');
+  revalidatePath('/dashboard/salidas');
+  revalidatePath('/dashboard/salidas-ext');
+  revalidatePath('/dashboard/pendientes');
 }
 
 export async function createEnvioAction(payload: Envio) {
@@ -69,6 +76,7 @@ export async function createEntradaAction(payload: Entrada) {
       descripcion: payload.descripcion,
       entradaDolar: payload.entradaDolar,
       fecha: payload.fecha,
+      moneda: payload.moneda,
       total: payload.total,
     })
     .returning({ id: entradas.id });
@@ -85,6 +93,7 @@ export async function updateEntradaAction(id: number, payload: Entrada) {
       descripcion: payload.descripcion,
       entradaDolar: payload.entradaDolar,
       fecha: payload.fecha,
+      moneda: payload.moneda,
       total: payload.total,
     })
     .where(eq(entradas.id, id));
@@ -104,7 +113,9 @@ export async function createSalidaAction(payload: Salida) {
       categoria: payload.categoria,
       descripcion: payload.descripcion,
       fecha: payload.fecha,
+      moneda: payload.moneda,
       valor: payload.valor,
+      valorDolar: payload.valorDolar,
     })
     .returning({ id: salidas.id });
 
@@ -119,7 +130,9 @@ export async function updateSalidaAction(id: number, payload: Salida) {
       categoria: payload.categoria,
       descripcion: payload.descripcion,
       fecha: payload.fecha,
+      moneda: payload.moneda,
       valor: payload.valor,
+      valorDolar: payload.valorDolar,
     })
     .where(eq(salidas.id, id));
 
@@ -133,7 +146,7 @@ export async function deleteSalidaAction(id: number) {
 
 export type SalidaExternaPayload = Omit<
   SalidaExternaRecord,
-  "entradaId" | "envioId" | "id"
+  'entradaId' | 'envioId' | 'id'
 > & {
   envioId?: number | null;
 };
@@ -146,6 +159,7 @@ export async function createSalidaExternaAction(payload: SalidaExternaPayload) {
       descripcion: `DEV EXT · ${payload.empleado} · ${payload.descripcion}`,
       entradaDolar: payload.dolares || null,
       fecha: payload.fecha,
+      moneda: 'COP',
       total: payload.pesos,
     })
     .returning({ id: entradas.id });
@@ -174,10 +188,14 @@ export async function createSalidaExternaAction(payload: SalidaExternaPayload) {
 }
 
 export async function devolverEnvioSaldoAction(id: number) {
-  const [envio] = await db.select().from(envios).where(eq(envios.id, id)).limit(1);
+  const [envio] = await db
+    .select()
+    .from(envios)
+    .where(eq(envios.id, id))
+    .limit(1);
 
   if (!envio) {
-    throw new Error("No existe el envío seleccionado.");
+    throw new Error('No existe el envío seleccionado.');
   }
 
   const [existing] = await db
@@ -203,6 +221,7 @@ export async function devolverEnvioSaldoAction(id: number) {
       descripcion: `DEV EXT · ${envio.operador} · ${descripcion}`,
       entradaDolar: envio.dolares,
       fecha: envio.fecha,
+      moneda: 'COP',
       total: totalDevuelto,
     })
     .returning({ id: entradas.id });
@@ -246,7 +265,10 @@ export async function deleteSalidaExternaAction(id: number) {
   revalidateDashboardPaths();
 }
 
-export async function updateSaldoBaseAction(mes: string, saldoAnterior: number) {
+export async function updateSaldoBaseAction(
+  mes: string,
+  saldoAnterior: number
+) {
   const [existing] = await db
     .select({ id: periodos.id })
     .from(periodos)

@@ -1,7 +1,13 @@
-import { asc } from "drizzle-orm";
-import { db } from "@/db";
-import { entradas, envios, pendientes, salidas, salidasExternas } from "@/db/schema";
-import type { Entrada, Envio, Salida } from "@/lib/data";
+import { asc } from 'drizzle-orm';
+import { db } from '@/db';
+import {
+  entradas,
+  envios,
+  pendientes,
+  salidas,
+  salidasExternas,
+} from '@/db/schema';
+import type { Entrada, Envio, Moneda, Salida } from '@/lib/data';
 
 export type EnvioRecord = Envio & { id: number | string };
 export type EntradaRecord = Entrada & { id: number | string };
@@ -27,7 +33,10 @@ export type PendienteRecord = {
 
 export async function getEnviosData(): Promise<EnvioRecord[]> {
   try {
-    const rows = await db.select().from(envios).orderBy(asc(envios.fecha), asc(envios.id));
+    const rows = await db
+      .select()
+      .from(envios)
+      .orderBy(asc(envios.fecha), asc(envios.id));
 
     return rows.map((row) => ({
       cambio: row.cambio,
@@ -37,7 +46,7 @@ export async function getEnviosData(): Promise<EnvioRecord[]> {
       ganancia: row.ganancia,
       id: row.id,
       nombre: row.nombre,
-      operador: row.operador as Envio["operador"],
+      operador: row.operador as Envio['operador'],
       pesos: row.pesos,
       estipulado: row.estipulado,
     }));
@@ -48,7 +57,10 @@ export async function getEnviosData(): Promise<EnvioRecord[]> {
 
 export async function getEntradasData(): Promise<EntradaRecord[]> {
   try {
-    const rows = await db.select().from(entradas).orderBy(asc(entradas.fecha), asc(entradas.id));
+    const rows = await db
+      .select()
+      .from(entradas)
+      .orderBy(asc(entradas.fecha), asc(entradas.id));
 
     return rows.map((row) => ({
       cambio: row.cambio,
@@ -56,6 +68,7 @@ export async function getEntradasData(): Promise<EntradaRecord[]> {
       entradaDolar: row.entradaDolar,
       fecha: String(row.fecha),
       id: row.id,
+      moneda: row.moneda as Moneda,
       total: row.total,
     }));
   } catch {
@@ -65,14 +78,19 @@ export async function getEntradasData(): Promise<EntradaRecord[]> {
 
 export async function getSalidasData(): Promise<SalidaRecord[]> {
   try {
-    const rows = await db.select().from(salidas).orderBy(asc(salidas.fecha), asc(salidas.id));
+    const rows = await db
+      .select()
+      .from(salidas)
+      .orderBy(asc(salidas.fecha), asc(salidas.id));
 
     return rows.map((row) => ({
-      categoria: row.categoria as Salida["categoria"],
+      categoria: row.categoria as Salida['categoria'],
       descripcion: row.descripcion,
       fecha: String(row.fecha),
       id: row.id,
+      moneda: row.moneda as Moneda,
       valor: row.valor,
+      valorDolar: row.valorDolar,
     }));
   } catch {
     return [];

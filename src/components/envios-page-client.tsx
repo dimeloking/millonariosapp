@@ -7,6 +7,7 @@ import {
   deleteEnvioAction,
   updateEnvioAction,
 } from '@/app/dashboard/actions';
+import { DayPaginationHeader } from '@/components/day-pagination-header';
 import { EnvioDrawer, NewEnvioButton } from '@/components/new-envio-button';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
 import { OperatorChip } from '@/components/operator-chip';
@@ -15,7 +16,6 @@ import {
   fmtAWG,
   fmtCOP,
   fmtDate,
-  fmtDayLabel,
   fmtNum,
   fmtUSD,
 } from '@/lib/formatters';
@@ -62,7 +62,7 @@ export function EnviosPageClient({
   const currentPage = Math.min(page, totalPages);
   const currentDays = sortedDays.slice(currentPage - 1, currentPage);
   const currentDayRows = currentDays[0] ? byDay[currentDays[0]] : [];
-  const currentDayLabel = currentDays[0] ? fmtDayLabel(currentDays[0]) : '';
+  const currentDay = currentDays[0] ?? '';
 
   const filteredPesos = filtered.reduce((s, e) => s + e.pesos, 0);
   const filteredFlorines = filtered.reduce((s, e) => s + e.florines, 0);
@@ -265,10 +265,7 @@ export function EnviosPageClient({
               marginBottom: 12,
             }}
           >
-            <div className="mono" style={{ color: '#858a93', fontSize: 11 }}>
-              Dia {currentPage} de {totalPages}
-              {currentDayLabel ? ` · ${currentDayLabel}` : ''}
-            </div>
+            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 className="btn btn-ghost"

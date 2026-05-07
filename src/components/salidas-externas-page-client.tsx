@@ -7,12 +7,12 @@ import {
   devolverEnvioSaldoAction,
 } from "@/app/dashboard/actions";
 import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
+import { DayPaginationHeader } from "@/components/day-pagination-header";
 import { OperatorChip } from "@/components/operator-chip";
 import {
   fmtAWG,
   fmtCOP,
   fmtDate,
-  fmtDayLabel,
   fmtNum,
   fmtUSD,
 } from "@/lib/formatters";
@@ -218,9 +218,7 @@ export function SalidasExternasPageClient({
 
         {currentDay ? (
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <div className="mono" style={{ color: "#858a93", fontSize: 11 }}>
-              Día {currentPage} de {totalPages} · {fmtDayLabel(currentDay)}
-            </div>
+            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 className="btn btn-ghost"

@@ -1,5 +1,5 @@
-import { asc, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { asc, eq } from 'drizzle-orm';
+import { db } from '@/db';
 import {
   creditos4x1000,
   entradas,
@@ -8,15 +8,16 @@ import {
   periodos,
   salidas,
   salidasExternas,
-} from "@/db/schema";
-import type { Entrada, Envio, Salida } from "@/lib/data";
-import { formatPeriodLabel } from "@/lib/formatters";
-import type { SalidaExternaRecord } from "@/lib/movements-data";
+} from '@/db/schema';
+import type { Entrada, Envio, Moneda, Salida } from '@/lib/data';
+import { formatPeriodLabel } from '@/lib/formatters';
+import type { SalidaExternaRecord } from '@/lib/movements-data';
 
 export type DashboardSummary = {
   cambioPromedio: number;
   creditosCount: number;
   currentBalance: number;
+  currentBalanceUsd: number;
   entradasCount: number;
   enviosCount: number;
   period: string;
@@ -26,8 +27,10 @@ export type DashboardSummary = {
   salidasExternasCount: number;
   pendientesCount: number;
   totalDolares: number;
+  totalEntradaDolares: number;
   totalEntradas: number;
   totalEnvios: number;
+  totalSalidaDolares: number;
   totalSalidas: number;
 };
 
@@ -47,7 +50,7 @@ export type BalancePeriodData = {
 
 function getCurrentPeriod(): string {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export async function getBalancePeriodData(
@@ -112,6 +115,7 @@ export async function getBalancePeriodData(
         descripcion: item.descripcion,
         entradaDolar: item.entradaDolar,
         fecha: String(item.fecha),
+        moneda: item.moneda as Moneda,
         total: item.total,
       })),
       envios: periodEnvios.map((item) => ({
@@ -121,7 +125,7 @@ export async function getBalancePeriodData(
         florines: item.florines,
         ganancia: item.ganancia,
         nombre: item.nombre,
-        operador: item.operador as Envio["operador"],
+        operador: item.operador as Envio['operador'],
         pesos: item.pesos,
         estipulado: item.estipulado,
       })),
@@ -132,10 +136,12 @@ export async function getBalancePeriodData(
         totalDolares: periodTotalDolares,
       },
       salidas: periodSalidas.map((item) => ({
-        categoria: item.categoria as Salida["categoria"],
+        categoria: item.categoria as Salida['categoria'],
         descripcion: item.descripcion,
         fecha: String(item.fecha),
+        moneda: item.moneda as Moneda,
         valor: item.valor,
+        valorDolar: item.valorDolar,
       })),
       salidasExternas: periodSalidasExternas.map((item) => ({
         cambio: item.cambio,
@@ -175,11 +181,26 @@ export async function getDashboardSummary(
 
   const totalEnvios = periodEnvios.reduce((sum, item) => sum + item.pesos, 0);
   const totalEntradas = periodEntradas.reduce(
-    (sum, item) => sum + item.total,
+    (sum, item) => sum + (item.moneda === 'COP' ? item.total : 0),
     0
   );
-  const totalSalidas = periodSalidas.reduce((sum, item) => sum + item.valor, 0);
+  const totalEntradaDolares = periodEntradas.reduce(
+    (sum, item) => sum + (item.moneda === 'USD' ? (item.entradaDolar ?? 0) : 0),
+    0
+  );
+  const totalSalidas = periodSalidas.reduce(
+    (sum, item) => sum + (item.moneda === 'COP' ? item.valor : 0),
+    0
+  );
+  const totalSalidaDolares = periodSalidas.reduce(
+    (sum, item) => sum + (item.moneda === 'USD' ? (item.valorDolar ?? 0) : 0),
+    0
+  );
   const totalDolares = periodEnvios.reduce(
+    (sum, item) => sum + item.dolares,
+    0
+  );
+  const dolaresDevueltos = periodSalidasExternas.reduce(
     (sum, item) => sum + item.dolares,
     0
   );
@@ -207,6 +228,11 @@ export async function getDashboardSummary(
     creditosCount,
     currentBalance:
       data.periodo.saldoAnterior + totalEntradas - totalSalidas - totalEnvios,
+    currentBalanceUsd:
+      totalEntradaDolares +
+      totalDolares -
+      dolaresDevueltos -
+      totalSalidaDolares,
     entradasCount: periodEntradas.length,
     enviosCount: periodEnvios.length,
     period: data.periodo.mes,
@@ -216,8 +242,10 @@ export async function getDashboardSummary(
     salidasCount: periodSalidas.length,
     salidasExternasCount: periodSalidasExternas.length,
     totalDolares,
+    totalEntradaDolares,
     totalEntradas,
     totalEnvios,
+    totalSalidaDolares,
     totalSalidas,
   };
 }

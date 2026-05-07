@@ -52,20 +52,31 @@ export function BalanceView({ data }: BalanceViewProps) {
   }, [data.salidasExternas, dateFrom, dateTo]);
 
   const saldoAnterior = saldoBase;
-  const saldoActual = filteredEntradas.reduce(
-    (sum, item) => sum + item.total,
+  const entradasPesos = filteredEntradas.reduce(
+    (sum, item) => sum + (item.moneda === 'COP' ? item.total : 0),
+    0
+  );
+  const entradasUsd = filteredEntradas.reduce(
+    (sum, item) => sum + (item.moneda === 'USD' ? (item.entradaDolar ?? 0) : 0),
     0
   );
   const retornosExternos = filteredSalidasExternas.reduce(
     (sum, item) => sum + item.pesos,
     0
   );
-  const entradasDirectas = saldoActual - retornosExternos;
+  const entradasDirectas = entradasPesos - retornosExternos;
   const ganancias = filteredEnvios.reduce(
     (sum, item) => sum + item.ganancia,
     0
   );
-  const gastos = filteredSalidas.reduce((sum, item) => sum + item.valor, 0);
+  const gastos = filteredSalidas.reduce(
+    (sum, item) => sum + (item.moneda === 'COP' ? item.valor : 0),
+    0
+  );
+  const gastosUsd = filteredSalidas.reduce(
+    (sum, item) => sum + (item.moneda === 'USD' ? (item.valorDolar ?? 0) : 0),
+    0
+  );
   const totalEnvios = filteredEnvios.reduce((sum, item) => sum + item.pesos, 0);
   const totalDolares = filteredEnvios.reduce(
     (sum, item) => sum + item.dolares,
@@ -90,9 +101,10 @@ export function BalanceView({ data }: BalanceViewProps) {
           0
         ) / totalDolares
       : 0;
-  const balance = saldoAnterior + saldoActual - gastos - totalEnvios;
+  const balance = saldoAnterior + entradasPesos - gastos - totalEnvios;
   const cajaArubaUsd = totalDolares - dolaresDevueltos;
   const cajaArubaFl = totalFlorines - florinesDevueltos;
+  const balanceUsd = entradasUsd + cajaArubaUsd - gastosUsd;
   const flujoDiario = Array.from(
     new Set([
       ...filteredEnvios.map((item) => item.fecha),
@@ -114,10 +126,16 @@ export function BalanceView({ data }: BalanceViewProps) {
     >((acc, fecha) => {
       const entradasDia = filteredEntradas
         .filter((item) => item.fecha === fecha)
-        .reduce((sum, item) => sum + item.total, 0);
+        .reduce(
+          (sum, item) => sum + (item.moneda === 'COP' ? item.total : 0),
+          0
+        );
       const salidasDia = filteredSalidas
         .filter((item) => item.fecha === fecha)
-        .reduce((sum, item) => sum + item.valor, 0);
+        .reduce(
+          (sum, item) => sum + (item.moneda === 'COP' ? item.valor : 0),
+          0
+        );
       const enviosDia = filteredEnvios
         .filter((item) => item.fecha === fecha)
         .reduce((sum, item) => sum + item.pesos, 0);
@@ -125,7 +143,8 @@ export function BalanceView({ data }: BalanceViewProps) {
         .filter((item) => item.fecha === fecha)
         .reduce((sum, item) => sum + item.pesos, 0);
       const entradasDirectasDia = entradasDia - retornosDia;
-      const saldoPrevio = acc.length > 0 ? acc[acc.length - 1].saldo : saldoAnterior;
+      const saldoPrevio =
+        acc.length > 0 ? acc[acc.length - 1].saldo : saldoAnterior;
 
       acc.push({
         entradas: entradasDirectasDia,
@@ -138,13 +157,13 @@ export function BalanceView({ data }: BalanceViewProps) {
 
       return acc;
     }, []);
-  const devueltoColombia = retornosExternos;
-
   return (
     <>
       <div className="topbar">
         <div>
-          <div className="crumb">Período · {formatPeriodLabel(data.periodo.mes)}</div>
+          <div className="crumb">
+            Período · {formatPeriodLabel(data.periodo.mes)}
+          </div>
           <h1>Balance</h1>
         </div>
         <div style={{ marginLeft: 'auto' }}>
@@ -244,9 +263,13 @@ export function BalanceView({ data }: BalanceViewProps) {
           </div>
           <div className="mono" style={{ color: '#858a93', fontSize: 11 }}>
             Este es el saldo con el que arranca el período. El saldo actual se
-            calcula como saldo base + entradas + retornos ext. - salidas - envíos.
+            calcula como saldo base + entradas COP - salidas COP - envíos.
           </div>
-          <button className="btn btn-primary" disabled={savingSaldoBase} type="submit">
+          <button
+            className="btn btn-primary"
+            disabled={savingSaldoBase}
+            type="submit"
+          >
             {savingSaldoBase ? 'Guardando...' : 'Guardar saldo base'}
           </button>
         </form>
@@ -259,26 +282,29 @@ export function BalanceView({ data }: BalanceViewProps) {
             <div>
               <div className="panel-title">Resumen mensual</div>
               <div className="panel-sub">
-                Saldo anterior + entradas + retornos ext. - gastos - envíos
+                Saldo anterior + entradas COP - gastos COP - envíos
               </div>
             </div>
           </div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(8, minmax(0, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
               borderTop: '1px solid #22262d',
             }}
           >
             {[
               { label: 'Saldo anterior', value: fmtCOP(saldoAnterior) },
-              { label: 'Entradas', value: fmtCOP(entradasDirectas) },
+              { label: 'Entradas COP', value: fmtCOP(entradasDirectas) },
               { label: 'Retornos ext.', value: fmtCOP(retornosExternos) },
+              { label: 'Entradas USD', value: fmtUSD(entradasUsd) },
               { label: 'Ganancias', value: fmtCOP(ganancias) },
-              { label: 'Gastos', value: fmtCOP(gastos), danger: true },
-              { label: 'Total envios', value: fmtCOP(totalEnvios) },
-              { label: 'Total dolares', value: fmtUSD(totalDolares) },
-              { label: 'Balance', value: fmtCOP(balance), accent: true },
+              { label: 'Gastos COP', value: fmtCOP(gastos), danger: true },
+              { label: 'Salidas USD', value: fmtUSD(gastosUsd), danger: true },
+              { label: 'Total envíos', value: fmtCOP(totalEnvios) },
+              { label: 'USD envíos', value: fmtUSD(totalDolares) },
+              { label: 'Balance COP', value: fmtCOP(balance), accent: true },
+              { label: 'Balance USD', value: fmtUSD(balanceUsd), accent: true },
             ].map((item) => (
               <div
                 key={item.label}
@@ -339,7 +365,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                   <span className="v">{fmtCOP(saldoAnterior)}</span>
                 </div>
                 <div className="calc-row">
-                  <span className="k">Entradas directas</span>
+                  <span className="k">Entradas directas COP</span>
                   <span className="v">{fmtCOP(entradasDirectas)}</span>
                 </div>
                 <div className="calc-row">
@@ -347,11 +373,11 @@ export function BalanceView({ data }: BalanceViewProps) {
                   <span className="v">{fmtCOP(retornosExternos)}</span>
                 </div>
                 <div className="calc-row">
-                  <span className="k">Salidas + envíos</span>
+                  <span className="k">Salidas COP + envíos</span>
                   <span className="v">{fmtCOP(gastos + totalEnvios)}</span>
                 </div>
                 <div className="calc-row total">
-                  <span className="k">Saldo actual</span>
+                  <span className="k">Saldo actual COP</span>
                   <span className="v">{fmtCOP(balance)}</span>
                 </div>
               </div>
@@ -361,38 +387,57 @@ export function BalanceView({ data }: BalanceViewProps) {
           <div className="panel">
             <div className="panel-header">
               <div>
-                <div className="panel-title">Aruba · USD/FL</div>
-                <div className="panel-sub">Enviado menos retornado</div>
+                <div className="panel-title">Dólares · USD/FL</div>
+                <div className="panel-sub">
+                  Entradas USD + envíos pendientes - salidas USD
+                </div>
               </div>
             </div>
             <div style={{ padding: '14px 18px' }}>
               <div className="calc-box" style={{ marginTop: 0 }}>
                 <div className="calc-row">
-                  <span className="k">Pendiente USD</span>
+                  <span className="k">Entradas USD</span>
+                  <span className="v">{fmtUSD(entradasUsd)}</span>
+                </div>
+                <div className="calc-row">
+                  <span className="k">Pendiente Aruba USD</span>
                   <span className="v">{fmtUSD(cajaArubaUsd)}</span>
                 </div>
                 <div className="calc-row">
+                  <span className="k">Salidas USD</span>
+                  <span className="v">{fmtUSD(gastosUsd)}</span>
+                </div>
+                <div className="calc-row">
                   <span className="k">Pendiente FL</span>
-                  <span className="v">AWG {cajaArubaFl.toLocaleString('es-CO')}</span>
+                  <span className="v">
+                    AWG {cajaArubaFl.toLocaleString('es-CO')}
+                  </span>
                 </div>
                 <div className="calc-row">
                   <span className="k">Cambio promedio</span>
-                  <span className="v">{cambioPromedio > 0 ? fmtCOP(cambioPromedio) : '-'}</span>
+                  <span className="v">
+                    {cambioPromedio > 0 ? fmtCOP(cambioPromedio) : '-'}
+                  </span>
                 </div>
                 <div className="calc-row total">
-                  <span className="k">Retornado a Colombia</span>
-                  <span className="v">{fmtCOP(devueltoColombia)}</span>
+                  <span className="k">Saldo USD</span>
+                  <span className="v">{fmtUSD(balanceUsd)}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="panel" style={{ marginTop: 16, overflow: 'hidden', padding: 0 }}>
+        <div
+          className="panel"
+          style={{ marginTop: 16, overflow: 'hidden', padding: 0 }}
+        >
           <div className="panel-header">
             <div>
-              <div className="panel-title">Saldo actual por día</div>
-              <div className="panel-sub">Saldo anterior + entradas + retornos ext. - salidas - envíos</div>
+              <div className="panel-title">Saldo COP por día</div>
+              <div className="panel-sub">
+                Saldo anterior + entradas COP - salidas COP - envíos
+              </div>
             </div>
           </div>
           <div className="table-wrap">
@@ -410,14 +455,22 @@ export function BalanceView({ data }: BalanceViewProps) {
               <tbody>
                 {flujoDiario.map((day) => (
                   <tr key={day.fecha}>
-                    <td className="mono" style={{ color: '#858a93', fontSize: 11 }}>
+                    <td
+                      className="mono"
+                      style={{ color: '#858a93', fontSize: 11 }}
+                    >
                       {day.fecha}
                     </td>
                     <td className="num pos">{fmtCOP(day.entradas)}</td>
                     <td className="num pos">{fmtCOP(day.retornos)}</td>
-                    <td className="num" style={{ color: '#e07575' }}>{fmtCOP(day.salidas)}</td>
+                    <td className="num" style={{ color: '#e07575' }}>
+                      {fmtCOP(day.salidas)}
+                    </td>
                     <td className="num">{fmtCOP(day.envios)}</td>
-                    <td className="num" style={{ color: '#d4a574', fontWeight: 700 }}>
+                    <td
+                      className="num"
+                      style={{ color: '#d4a574', fontWeight: 700 }}
+                    >
                       {fmtCOP(day.saldo)}
                     </td>
                   </tr>
