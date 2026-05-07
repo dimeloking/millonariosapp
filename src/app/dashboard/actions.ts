@@ -296,6 +296,7 @@ export async function updateSaldoBaseAction(
 export type PendientePayload = {
   fecha: string;
   texto: string;
+  valor: number;
 };
 
 export async function createPendienteAction(payload: PendientePayload) {
@@ -305,6 +306,7 @@ export async function createPendienteAction(payload: PendientePayload) {
       completado: false,
       fecha: payload.fecha,
       texto: payload.texto,
+      valor: payload.valor,
     })
     .returning({ id: pendientes.id });
 

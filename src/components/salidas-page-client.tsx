@@ -8,7 +8,10 @@ import {
   updateSalidaAction,
 } from '@/app/dashboard/actions';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
-import { DayPaginationHeader } from '@/components/day-pagination-header';
+import {
+  DayPaginationControls,
+  DayPaginationHeader,
+} from '@/components/day-pagination-header';
 import { SalidaDrawer } from '@/components/salida-drawer';
 import type { Salida } from '@/lib/data';
 import { fmtCOP, fmtDate, fmtUSD } from '@/lib/formatters';
@@ -236,26 +239,11 @@ export function SalidasPageClient({
               currentPage={currentPage}
               totalPages={totalPages}
             />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === totalPages}
-                type="button"
-                onClick={() =>
-                  setPage((value) => Math.min(totalPages, value + 1))
-                }
-              >
-                Siguiente
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === 1}
-                type="button"
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
-              >
-                Anterior
-              </button>
-            </div>
+            <DayPaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         ) : null}
 

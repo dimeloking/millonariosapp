@@ -29,6 +29,7 @@ export type PendienteRecord = {
   fecha: string;
   id: number | string;
   texto: string;
+  valor: number;
 };
 
 export async function getEnviosData(): Promise<EnvioRecord[]> {
@@ -133,6 +134,7 @@ export async function getPendientesData(): Promise<PendienteRecord[]> {
       fecha: String(row.fecha),
       id: row.id,
       texto: row.texto,
+      valor: row.valor,
     }));
   } catch {
     return [];

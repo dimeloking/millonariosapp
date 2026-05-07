@@ -63,6 +63,7 @@ export const pendientes = pgTable('pendientes', {
   id: serial('id').primaryKey(),
   fecha: date('fecha').notNull(),
   texto: text('texto').notNull(),
+  valor: integer('valor').notNull().default(0),
   completado: boolean('completado').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

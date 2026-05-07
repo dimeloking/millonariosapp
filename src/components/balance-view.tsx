@@ -410,7 +410,7 @@ export function BalanceView({ data }: BalanceViewProps) {
                 <div className="calc-row">
                   <span className="k">Pendiente FL</span>
                   <span className="v">
-                    AWG {cajaArubaFl.toLocaleString('es-CO')}
+                    FL {cajaArubaFl.toLocaleString('es-CO')}
                   </span>
                 </div>
                 <div className="calc-row">

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { DashboardSummary } from '@/lib/balance-data';
 import { fmtCOP, fmtUSD } from '@/lib/formatters';
+import type { TrmData } from '@/lib/trm-data';
 
 type NavItem = {
   href: string;
@@ -16,6 +17,7 @@ type NavGroup = { items: NavItem[]; section: string };
 
 type SidebarProps = {
   summary: DashboardSummary;
+  trm: TrmData | null;
 };
 
 const iconProps = {
@@ -26,7 +28,7 @@ const iconProps = {
   viewBox: '0 0 16 16',
 };
 
-export function Sidebar({ summary }: SidebarProps) {
+export function Sidebar({ summary, trm }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useUser();
   const userName =
@@ -179,6 +181,31 @@ export function Sidebar({ summary }: SidebarProps) {
         <span className="serif" style={{ fontSize: 22 }}>
           Divisas
         </span>
+        {trm ? (
+          <div
+            className="mono"
+            title={
+              trm.fechaActualizacion
+                ? `TRM actualizada: ${trm.fechaActualizacion}`
+                : 'TRM actual'
+            }
+            style={{
+              background: '#16191e',
+              border: '1px solid #22262d',
+              borderRadius: 6,
+              color: '#d4a574',
+              lineHeight: 1.1,
+              marginLeft: 'auto',
+              padding: '5px 7px',
+              textAlign: 'right',
+            }}
+          >
+            <div style={{ color: '#858a93', fontSize: 9 }}>TRM</div>
+            <div style={{ fontSize: 11, fontWeight: 700 }}>
+              {fmtCOP(trm.valor)}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div

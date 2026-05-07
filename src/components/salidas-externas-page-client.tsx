@@ -1,65 +1,80 @@
-"use client";
+'use client';
 
-import { Fragment, useMemo, useState } from "react";
-import { RotateCcw, Trash2 } from "lucide-react";
+import { useMemo, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import {
+  createSalidaExternaAction,
   deleteSalidaExternaAction,
-  devolverEnvioSaldoAction,
-} from "@/app/dashboard/actions";
-import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
-import { DayPaginationHeader } from "@/components/day-pagination-header";
-import { OperatorChip } from "@/components/operator-chip";
+} from '@/app/dashboard/actions';
+import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
 import {
-  fmtAWG,
-  fmtCOP,
-  fmtDate,
-  fmtNum,
-  fmtUSD,
-} from "@/lib/formatters";
-import type { EnvioRecord, SalidaExternaRecord } from "@/lib/movements-data";
+  DayPaginationControls,
+  DayPaginationHeader,
+} from '@/components/day-pagination-header';
+import { fmtAWG, fmtCOP, fmtDate, fmtNum, fmtUSD } from '@/lib/formatters';
+import type { EnvioRecord, SalidaExternaRecord } from '@/lib/movements-data';
 
 type SalidasExternasPageClientProps = {
   envios: EnvioRecord[];
   initialRows: SalidaExternaRecord[];
 };
 
+const OPERADORES = ['ROYMAN', 'ERIKA', 'LINA', 'JUAN PABLO'] as const;
+
+function todayISO() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
+
+function parseMoney(value: string) {
+  const cleaned = value.trim().replace(/[^\d.,-]/g, '');
+  if (!cleaned) return 0;
+  return Number(cleaned.split(',').join('')) || 0;
+}
+
+function formatThousands(value: string) {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 export function SalidasExternasPageClient({
   envios,
   initialRows,
 }: SalidasExternasPageClientProps) {
   const [rows, setRows] = useState(initialRows);
-  const [search, setSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
-  const [busyId, setBusyId] = useState<number | string | null>(null);
+  const [manualBusy, setManualBusy] = useState(false);
+  const [manualFecha, setManualFecha] = useState(todayISO());
+  const [manualEmpleado, setManualEmpleado] =
+    useState<(typeof OPERADORES)[number]>('ROYMAN');
+  const [manualDescripcion, setManualDescripcion] = useState('Retorno manual');
+  const [manualDolares, setManualDolares] = useState('');
+  const [manualFlorines, setManualFlorines] = useState('');
+  const [manualCambio, setManualCambio] = useState('3680');
 
-  const returnedByEnvio = useMemo(() => {
-    const map = new Map<number, SalidaExternaRecord>();
-    for (const row of rows) {
-      if (row.envioId) map.set(row.envioId, row);
-    }
-    return map;
-  }, [rows]);
-
-  const filteredEnvios = useMemo(() => {
-    return envios.filter((row) => {
-      const text = `${row.nombre} ${row.operador}`.toLowerCase();
+  const filteredRows = useMemo(() => {
+    return rows.filter((row) => {
+      const text = `${row.descripcion} ${row.empleado}`.toLowerCase();
       const matchSearch = text.includes(search.toLowerCase());
       const matchFrom = !dateFrom || row.fecha >= dateFrom;
       const matchTo = !dateTo || row.fecha <= dateTo;
       return matchSearch && matchFrom && matchTo;
     });
-  }, [dateFrom, dateTo, envios, search]);
+  }, [dateFrom, dateTo, rows, search]);
 
   const byDay = useMemo(() => {
-    const groups: Record<string, EnvioRecord[]> = {};
-    for (const row of filteredEnvios) {
+    const groups: Record<string, SalidaExternaRecord[]> = {};
+    for (const row of filteredRows) {
       groups[row.fecha] ??= [];
       groups[row.fecha].push(row);
     }
     return groups;
-  }, [filteredEnvios]);
+  }, [filteredRows]);
 
   const sortedDays = Object.keys(byDay).sort((a, b) => b.localeCompare(a));
   const totalPages = Math.max(sortedDays.length, 1);
@@ -67,47 +82,58 @@ export function SalidasExternasPageClient({
   const currentDay = sortedDays[currentPage - 1];
   const currentRows = currentDay ? byDay[currentDay] : [];
 
-  const totalEnviadoUsd = filteredEnvios.reduce((sum, row) => sum + row.dolares, 0);
-  const totalEnviadoFl = filteredEnvios.reduce((sum, row) => sum + row.florines, 0);
+  const totalEnviadoUsd = envios.reduce((sum, row) => sum + row.dolares, 0);
+  const totalEnviadoFl = envios.reduce((sum, row) => sum + row.florines, 0);
   const totalRetornadoUsd = rows.reduce((sum, row) => sum + row.dolares, 0);
   const totalRetornadoFl = rows.reduce((sum, row) => sum + row.florines, 0);
   const totalRetornadoCop = rows.reduce((sum, row) => sum + row.pesos, 0);
   const pendienteUsd = totalEnviadoUsd - totalRetornadoUsd;
   const pendienteFl = totalEnviadoFl - totalRetornadoFl;
-
-  async function devolverSaldo(envio: EnvioRecord) {
-    if (typeof envio.id !== "number") return;
-
-    const envioId = envio.id;
-    setBusyId(envioId);
-    try {
-      const created = await devolverEnvioSaldoAction(envioId);
-      const totalDevuelto = Math.round(envio.pesos + envio.ganancia);
-      setRows((current) => [
-        ...current,
-        {
-          cambio: envio.cambio,
-          descripcion: `Retorno envío ${envio.nombre}`,
-          dolares: envio.dolares,
-          empleado: envio.operador,
-          entradaId: created.entradaId,
-          envioId,
-          fecha: envio.fecha,
-          florines: envio.florines,
-          id: created.id ?? `devolucion-${crypto.randomUUID()}`,
-          pesos: totalDevuelto,
-        },
-      ]);
-    } finally {
-      setBusyId(null);
-    }
-  }
+  const manualUsd = parseMoney(manualDolares);
+  const manualFl = parseMoney(manualFlorines);
+  const manualCambioNum = parseMoney(manualCambio);
+  const manualPesos = Math.round(manualUsd * manualCambioNum);
 
   async function eliminarDevolucion(row: SalidaExternaRecord) {
-    if (typeof row.id === "number") {
+    if (typeof row.id === 'number') {
       await deleteSalidaExternaAction(row.id);
     }
     setRows((current) => current.filter((item) => item.id !== row.id));
+  }
+
+  async function crearRetornoManual(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (manualUsd <= 0 || manualCambioNum <= 0) return;
+
+    const payload = {
+      cambio: manualCambioNum,
+      descripcion: manualDescripcion.trim() || 'Retorno manual',
+      dolares: Number(manualUsd.toFixed(2)),
+      empleado: manualEmpleado,
+      envioId: null,
+      fecha: manualFecha,
+      florines: Number(manualFl.toFixed(2)),
+      pesos: manualPesos,
+    };
+
+    setManualBusy(true);
+    try {
+      const created = await createSalidaExternaAction(payload);
+      setRows((current) => [
+        ...current,
+        {
+          ...payload,
+          entradaId: created.entradaId,
+          id: created.id ?? `retorno-${crypto.randomUUID()}`,
+        },
+      ]);
+      setManualDescripcion('Retorno manual');
+      setManualDolares('');
+      setManualFlorines('');
+      setPage(1);
+    } finally {
+      setManualBusy(false);
+    }
   }
 
   return (
@@ -117,17 +143,20 @@ export function SalidasExternasPageClient({
           <div className="crumb">Caja externa · Aruba</div>
           <h1>Salidas ext.</h1>
         </div>
-        <div style={{ marginLeft: "auto" }}>
+        <div style={{ marginLeft: 'auto' }}>
           <ClientTopbarPendingBell />
         </div>
       </div>
 
-      <div className="content" style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+      <div
+        className="content"
+        style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}
+      >
         <div
           style={{
-            display: "grid",
+            display: 'grid',
             gap: 12,
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: 'repeat(4, 1fr)',
             marginBottom: 20,
           }}
         >
@@ -160,7 +189,7 @@ export function SalidasExternasPageClient({
         <div className="filter-bar" style={{ marginBottom: 16 }}>
           <input
             className="search-input"
-            placeholder="Buscar cliente u operador..."
+            placeholder="Buscar retorno u operador..."
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -171,10 +200,10 @@ export function SalidasExternasPageClient({
 
         <div
           style={{
-            alignItems: "end",
-            display: "grid",
+            alignItems: 'end',
+            display: 'grid',
             gap: 12,
-            gridTemplateColumns: "180px 180px auto",
+            gridTemplateColumns: '180px 180px auto',
             marginBottom: 18,
           }}
         >
@@ -204,11 +233,11 @@ export function SalidasExternasPageClient({
           </div>
           <button
             className="btn btn-ghost"
-            style={{ justifySelf: "start" }}
+            style={{ justifySelf: 'start' }}
             type="button"
             onClick={() => {
-              setDateFrom("");
-              setDateTo("");
+              setDateFrom('');
+              setDateTo('');
               setPage(1);
             }}
           >
@@ -216,107 +245,179 @@ export function SalidasExternasPageClient({
           </button>
         </div>
 
+        <form
+          className="panel"
+          onSubmit={crearRetornoManual}
+          style={{
+            alignItems: 'end',
+            display: 'grid',
+            gap: 12,
+            gridTemplateColumns: '150px 150px 1fr 140px 140px 120px auto',
+            marginTop: 16,
+            padding: 16,
+          }}
+        >
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Fecha</label>
+            <input
+              className="fin-input mono"
+              type="date"
+              value={manualFecha}
+              onChange={(event) => setManualFecha(event.target.value)}
+            />
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Operador</label>
+            <select
+              className="fin-input"
+              value={manualEmpleado}
+              onChange={(event) =>
+                setManualEmpleado(event.target.value as typeof manualEmpleado)
+              }
+            >
+              {OPERADORES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Descripción</label>
+            <input
+              className="fin-input"
+              value={manualDescripcion}
+              onChange={(event) => setManualDescripcion(event.target.value)}
+            />
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>USD retornados</label>
+            <input
+              className="fin-input mono"
+              inputMode="decimal"
+              value={manualDolares}
+              onChange={(event) => setManualDolares(event.target.value)}
+            />
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Cambio USD</label>
+            <input
+              className="fin-input mono"
+              inputMode="numeric"
+              value={manualCambio}
+              onChange={(event) =>
+                setManualCambio(formatThousands(event.target.value))
+              }
+            />
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>FL</label>
+            <input
+              className="fin-input mono"
+              inputMode="decimal"
+              value={manualFlorines}
+              onChange={(event) => setManualFlorines(event.target.value)}
+            />
+          </div>
+          <button
+            className="btn btn-primary"
+            disabled={manualBusy || manualUsd <= 0 || manualCambioNum <= 0}
+            type="submit"
+          >
+            {manualBusy ? 'Guardando...' : `Retornar ${fmtCOP(manualPesos)}`}
+          </button>
+        </form>
+
         {currentDay ? (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === totalPages}
-                type="button"
-                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-              >
-                Siguiente
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === 1}
-                type="button"
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
-              >
-                Anterior
-              </button>
-            </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: 12,
+              marginTop: 16,
+            }}
+          >
+            <DayPaginationHeader
+              currentDay={currentDay}
+              currentPage={currentPage}
+              totalPages={totalPages}
+            />
+            <DayPaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         ) : null}
 
-        <div className="panel" style={{ overflow: "hidden", padding: 0 }}>
+        <div
+          className="panel"
+          style={{
+            marginTop: currentDay ? 0 : 16,
+            overflow: 'hidden',
+            padding: 0,
+          }}
+        >
+          <div className="panel-header">
+            <div>
+              <div className="panel-title">Retornos registrados</div>
+              <div className="panel-sub">
+                Creados desde el formulario manual
+              </div>
+            </div>
+          </div>
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
                   <th>Fecha</th>
                   <th>Operador</th>
-                  <th>Cliente</th>
-                  <th style={{ textAlign: "right" }}>Cambio</th>
-                  <th style={{ textAlign: "right" }}>Pesos</th>
-                  <th style={{ textAlign: "right" }}>Dólares</th>
-                  <th style={{ textAlign: "right" }}>Ganancia</th>
-                  <th style={{ textAlign: "right" }}>Retorna COP</th>
-                  <th style={{ width: 150 }} />
+                  <th>Descripción</th>
+                  <th style={{ textAlign: 'right' }}>USD</th>
+                  <th style={{ textAlign: 'right' }}>FL</th>
+                  <th style={{ textAlign: 'right' }}>Cambio USD</th>
+                  <th style={{ textAlign: 'right' }}>Retorna COP</th>
+                  <th style={{ width: 44 }} />
                 </tr>
               </thead>
               <tbody>
-                {currentDay ? (
-                  <Fragment key={currentDay}>
-                    {currentRows.map((envio) => {
-                      const devolucion =
-                        typeof envio.id === "number" ? returnedByEnvio.get(envio.id) : null;
-                      const totalDevuelve = Math.round(envio.pesos + envio.ganancia);
-
-                      return (
-                        <tr key={String(envio.id)}>
-                          <td className="mono" style={{ color: "#858a93", fontSize: 11 }}>
-                            {fmtDate(envio.fecha)}
-                          </td>
-                          <td>
-                            <OperatorChip name={envio.operador} />
-                          </td>
-                          <td className="td-name">{envio.nombre}</td>
-                          <td className="num mono" style={{ color: "#858a93", fontSize: 11 }}>
-                            ${fmtNum(envio.cambio)}
-                          </td>
-                          <td className="num">{fmtCOP(envio.pesos)}</td>
-                          <td className="num">{fmtUSD(envio.dolares)}</td>
-                          <td className="num pos">{fmtCOP(envio.ganancia)}</td>
-                          <td className="num" style={{ color: "#d4a574", fontWeight: 700 }}>
-                            {fmtCOP(totalDevuelve)}
-                          </td>
-                          <td>
-                            {devolucion ? (
-                              <button
-                                className="btn btn-ghost"
-                                style={{ color: "#e07575", fontSize: 12 }}
-                                type="button"
-                                onClick={() => eliminarDevolucion(devolucion)}
-                              >
-                                <Trash2 size={14} />
-                                Quitar
-                              </button>
-                            ) : (
-                              <button
-                                className="btn btn-primary"
-                                disabled={busyId === envio.id || typeof envio.id !== "number"}
-                                style={{ fontSize: 12 }}
-                                type="button"
-                                onClick={() => devolverSaldo(envio)}
-                              >
-                                <RotateCcw size={14} />
-                                Retornar
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </Fragment>
-                ) : (
-                  <tr>
-                    <td colSpan={9} style={{ color: "#858a93", padding: 18 }}>
-                      Sin envíos para el filtro actual.
+                {currentRows.map((row) => (
+                  <tr key={String(row.id)}>
+                    <td
+                      className="mono"
+                      style={{ color: '#858a93', fontSize: 11 }}
+                    >
+                      {fmtDate(row.fecha)}
+                    </td>
+                    <td>{row.empleado}</td>
+                    <td className="td-name">{row.descripcion}</td>
+                    <td className="num">{fmtUSD(row.dolares)}</td>
+                    <td className="num">{fmtAWG(row.florines)}</td>
+                    <td
+                      className="num mono"
+                      style={{ color: '#858a93', fontSize: 11 }}
+                    >
+                      ${fmtNum(row.cambio)}
+                    </td>
+                    <td className="num pos">{fmtCOP(row.pesos)}</td>
+                    <td>
+                      <button
+                        className="icon-btn"
+                        type="button"
+                        onClick={() => void eliminarDevolucion(row)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </td>
                   </tr>
-                )}
+                ))}
+                {!currentDay ? (
+                  <tr>
+                    <td colSpan={8} style={{ color: '#858a93', padding: 18 }}>
+                      Sin retornos para el filtro actual.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

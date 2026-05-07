@@ -8,7 +8,10 @@ import {
   updateEntradaAction,
 } from '@/app/dashboard/actions';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
-import { DayPaginationHeader } from '@/components/day-pagination-header';
+import {
+  DayPaginationControls,
+  DayPaginationHeader,
+} from '@/components/day-pagination-header';
 import { EntradaDrawer } from '@/components/entrada-drawer';
 import { fmtCOP, fmtDate, fmtUSD } from '@/lib/formatters';
 import type { EntradaRecord } from '@/lib/movements-data';
@@ -201,26 +204,11 @@ export function EntradasPageClient({
               currentPage={currentPage}
               totalPages={totalPages}
             />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === totalPages}
-                type="button"
-                onClick={() =>
-                  setPage((value) => Math.min(totalPages, value + 1))
-                }
-              >
-                Siguiente
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === 1}
-                type="button"
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
-              >
-                Anterior
-              </button>
-            </div>
+            <DayPaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         ) : null}
 

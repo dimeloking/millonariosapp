@@ -1,18 +1,33 @@
-"use client";
+'use client';
 
-import { Fragment, useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Fragment, useMemo, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import {
   createPendienteAction,
   deletePendienteAction,
   updatePendienteStatusAction,
-} from "@/app/dashboard/actions";
-import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell";
-import { DayPaginationHeader } from "@/components/day-pagination-header";
-import { fmtDate } from "@/lib/formatters";
-import type { PendienteRecord } from "@/lib/movements-data";
+} from '@/app/dashboard/actions';
+import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
+import {
+  DayPaginationControls,
+  DayPaginationHeader,
+} from '@/components/day-pagination-header';
+import { fmtCOP, fmtDate } from '@/lib/formatters';
+import type { PendienteRecord } from '@/lib/movements-data';
 
-const STATES = ["Todos", "Abiertos", "Completados"] as const;
+const STATES = ['Todos', 'Abiertos', 'Completados'] as const;
+
+function parseMoney(value: string) {
+  const cleaned = value.trim().replace(/[^\d.,-]/g, '');
+  if (!cleaned) return 0;
+  return Number(cleaned.split(',').join('')) || 0;
+}
+
+function formatThousands(value: string) {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 
 export function PendientesPageClient({
   initialRows,
@@ -20,21 +35,22 @@ export function PendientesPageClient({
   initialRows: PendienteRecord[];
 }) {
   const [rows, setRows] = useState(initialRows);
-  const [search, setSearch] = useState("");
-  const [state, setState] = useState<(typeof STATES)[number]>("Todos");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [search, setSearch] = useState('');
+  const [state, setState] = useState<(typeof STATES)[number]>('Todos');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
-  const [texto, setTexto] = useState("");
+  const [texto, setTexto] = useState('');
+  const [valor, setValor] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const filtered = useMemo(() => {
     return rows.filter((item) => {
       const matchText = item.texto.toLowerCase().includes(search.toLowerCase());
       const matchState =
-        state === "Todos" ||
-        (state === "Abiertos" && !item.completado) ||
-        (state === "Completados" && item.completado);
+        state === 'Todos' ||
+        (state === 'Abiertos' && !item.completado) ||
+        (state === 'Completados' && item.completado);
       const matchFrom = !dateFrom || item.fecha >= dateFrom;
       const matchTo = !dateTo || item.fecha <= dateTo;
       return matchText && matchState && matchFrom && matchTo;
@@ -57,13 +73,19 @@ export function PendientesPageClient({
   const currentRows = currentDay ? byDay[currentDay] : [];
   const openCount = rows.filter((item) => !item.completado).length;
   const doneCount = rows.length - openCount;
+  const pendingValue = rows.reduce((sum, item) => sum + item.valor, 0);
 
   async function createPending(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanText = texto.trim();
     if (!cleanText) return;
 
-    const createdId = await createPendienteAction({ fecha, texto: cleanText });
+    const pendingValue = Math.round(parseMoney(valor));
+    const createdId = await createPendienteAction({
+      fecha,
+      texto: cleanText,
+      valor: pendingValue,
+    });
     setRows((current) => [
       ...current,
       {
@@ -71,9 +93,11 @@ export function PendientesPageClient({
         fecha,
         id: createdId ?? `pendiente-${crypto.randomUUID()}`,
         texto: cleanText,
+        valor: pendingValue,
       },
     ]);
-    setTexto("");
+    setTexto('');
+    setValor('');
     setPage(1);
   }
 
@@ -84,36 +108,54 @@ export function PendientesPageClient({
           <div className="crumb">Control diario</div>
           <h1>Pendientes</h1>
         </div>
-        <div style={{ marginLeft: "auto" }}>
+        <div style={{ marginLeft: 'auto' }}>
           <ClientTopbarPendingBell />
         </div>
       </div>
 
-      <div className="content" style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+      <div
+        className="content"
+        style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}
+      >
         <div
           style={{
-            display: "grid",
+            display: 'grid',
             gap: 12,
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: 'repeat(4, 1fr)',
             marginBottom: 20,
           }}
         >
-          <div className="kpi accent" style={{ padding: "14px 18px" }}>
+          <div className="kpi accent" style={{ padding: '14px 18px' }}>
             <div className="label mono">Abiertos</div>
-            <div className="value serif" style={{ color: "#e07575", fontSize: 24 }}>
+            <div
+              className="value serif"
+              style={{ color: '#e07575', fontSize: 24 }}
+            >
               {openCount}
             </div>
           </div>
-          <div className="kpi" style={{ padding: "14px 18px" }}>
+          <div className="kpi" style={{ padding: '14px 18px' }}>
             <div className="label mono">Completados</div>
-            <div className="value serif" style={{ color: "#7cc08a", fontSize: 24 }}>
+            <div
+              className="value serif"
+              style={{ color: '#7cc08a', fontSize: 24 }}
+            >
               {doneCount}
             </div>
           </div>
-          <div className="kpi" style={{ padding: "14px 18px" }}>
+          <div className="kpi" style={{ padding: '14px 18px' }}>
             <div className="label mono">Filtrados</div>
             <div className="value mono" style={{ fontSize: 24 }}>
               {filtered.length}
+            </div>
+          </div>
+          <div className="kpi" style={{ padding: '14px 18px' }}>
+            <div className="label mono">Total valores</div>
+            <div
+              className="value serif"
+              style={{ color: '#d4a574', fontSize: 24 }}
+            >
+              {fmtCOP(pendingValue)}
             </div>
           </div>
         </div>
@@ -122,10 +164,10 @@ export function PendientesPageClient({
           className="panel"
           onSubmit={createPending}
           style={{
-            alignItems: "end",
-            display: "grid",
+            alignItems: 'end',
+            display: 'grid',
             gap: 12,
-            gridTemplateColumns: "170px 1fr auto",
+            gridTemplateColumns: '170px 1fr 180px auto',
             marginBottom: 18,
             padding: 16,
           }}
@@ -148,6 +190,18 @@ export function PendientesPageClient({
               placeholder="Texto del pendiente"
             />
           </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Valor</label>
+            <input
+              className="fin-input mono"
+              inputMode="numeric"
+              value={valor}
+              onChange={(event) =>
+                setValor(formatThousands(event.target.value))
+              }
+              placeholder="0"
+            />
+          </div>
           <button className="btn btn-primary" type="submit">
             Agregar
           </button>
@@ -167,7 +221,7 @@ export function PendientesPageClient({
             {STATES.map((item) => (
               <button
                 key={item}
-                className={state === item ? "active" : ""}
+                className={state === item ? 'active' : ''}
                 type="button"
                 onClick={() => {
                   setState(item);
@@ -182,10 +236,10 @@ export function PendientesPageClient({
 
         <div
           style={{
-            alignItems: "end",
-            display: "grid",
+            alignItems: 'end',
+            display: 'grid',
             gap: 12,
-            gridTemplateColumns: "180px 180px auto",
+            gridTemplateColumns: '180px 180px auto',
             marginBottom: 18,
           }}
         >
@@ -215,11 +269,11 @@ export function PendientesPageClient({
           </div>
           <button
             className="btn btn-ghost"
-            style={{ justifySelf: "start" }}
+            style={{ justifySelf: 'start' }}
             type="button"
             onClick={() => {
-              setDateFrom("");
-              setDateTo("");
+              setDateFrom('');
+              setDateTo('');
               setPage(1);
             }}
           >
@@ -228,36 +282,34 @@ export function PendientesPageClient({
         </div>
 
         {sortedDays.length > 0 ? (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === totalPages}
-                type="button"
-                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-              >
-                Siguiente
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === 1}
-                type="button"
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
-              >
-                Anterior
-              </button>
-            </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: 12,
+            }}
+          >
+            <DayPaginationHeader
+              currentDay={currentDay}
+              currentPage={currentPage}
+              totalPages={totalPages}
+            />
+            <DayPaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         ) : null}
 
-        <div className="panel" style={{ overflow: "hidden", padding: 0 }}>
+        <div className="panel" style={{ overflow: 'hidden', padding: 0 }}>
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
                   <th>Fecha</th>
                   <th>Pendiente</th>
+                  <th style={{ textAlign: 'right' }}>Valor</th>
                   <th>Estado</th>
                   <th style={{ width: 44 }} />
                 </tr>
@@ -267,34 +319,57 @@ export function PendientesPageClient({
                   <Fragment key={currentDay}>
                     {currentRows.map((item) => (
                       <tr key={String(item.id)}>
-                        <td className="mono" style={{ color: "#858a93", fontSize: 11 }}>
+                        <td
+                          className="mono"
+                          style={{ color: '#858a93', fontSize: 11 }}
+                        >
                           {fmtDate(item.fecha)}
                         </td>
                         <td
                           className="td-name"
-                          style={{ color: item.completado ? "#7cc08a" : "#e07575" }}
+                          style={{
+                            color: item.completado ? '#7cc08a' : '#e07575',
+                          }}
                         >
                           {item.texto}
                         </td>
+                        <td className="num">
+                          {item.valor > 0 ? fmtCOP(item.valor) : '—'}
+                        </td>
                         <td>
-                          <label style={{ alignItems: "center", display: "flex", gap: 8 }}>
+                          <label
+                            style={{
+                              alignItems: 'center',
+                              display: 'flex',
+                              gap: 8,
+                            }}
+                          >
                             <input
                               checked={item.completado}
                               type="checkbox"
                               onChange={async (event) => {
                                 const completado = event.target.checked;
-                                if (typeof item.id === "number") {
-                                  await updatePendienteStatusAction(item.id, completado);
+                                if (typeof item.id === 'number') {
+                                  await updatePendienteStatusAction(
+                                    item.id,
+                                    completado
+                                  );
                                 }
                                 setRows((current) =>
                                   current.map((row) =>
-                                    row.id === item.id ? { ...row, completado } : row
+                                    row.id === item.id
+                                      ? { ...row, completado }
+                                      : row
                                   )
                                 );
                               }}
                             />
-                            <span style={{ color: item.completado ? "#7cc08a" : "#e07575" }}>
-                              {item.completado ? "Completado" : "Abierto"}
+                            <span
+                              style={{
+                                color: item.completado ? '#7cc08a' : '#e07575',
+                              }}
+                            >
+                              {item.completado ? 'Completado' : 'Abierto'}
                             </span>
                           </label>
                         </td>
@@ -303,8 +378,11 @@ export function PendientesPageClient({
                             className="icon-btn"
                             type="button"
                             onClick={async () => {
-                              if (typeof item.id === "number") await deletePendienteAction(item.id);
-                              setRows((current) => current.filter((row) => row.id !== item.id));
+                              if (typeof item.id === 'number')
+                                await deletePendienteAction(item.id);
+                              setRows((current) =>
+                                current.filter((row) => row.id !== item.id)
+                              );
                             }}
                           >
                             <Trash2 size={15} />
@@ -315,7 +393,7 @@ export function PendientesPageClient({
                   </Fragment>
                 ) : (
                   <tr>
-                    <td colSpan={4} style={{ color: "#858a93", padding: 18 }}>
+                    <td colSpan={5} style={{ color: '#858a93', padding: 18 }}>
                       Sin pendientes para el filtro actual.
                     </td>
                   </tr>

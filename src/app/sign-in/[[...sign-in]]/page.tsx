@@ -1,4 +1,4 @@
-import { SignInForm } from "@/components/sign-in-form";
+import { SignInForm } from '@/components/sign-in-form';
 
 export default function SignInPage() {
   return (
@@ -14,9 +14,9 @@ export default function SignInPage() {
               className="mono"
               style={{
                 fontSize: 10,
-                color: "#5a5f68",
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
+                color: '#5a5f68',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
               }}
             >
               Gestión de envíos
@@ -25,7 +25,7 @@ export default function SignInPage() {
         </div>
 
         <div className="login-hero">
-          <div className="eyebrow">COP · USD · AWG</div>
+          <div className="eyebrow">COP · USD · FL</div>
           <h1>
             Tus envíos,
             <br />
@@ -34,8 +34,8 @@ export default function SignInPage() {
             un solo lugar.
           </h1>
           <p>
-            Registra ventas en pesos y deja que la conversión a dólares, florines y ganancias se
-            calcule sola.
+            Registra ventas en pesos y deja que la conversión a dólares,
+            florines y ganancias se calcule sola.
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export default function SignInPage() {
             <span className="val up">↑ 3,680.00</span>
           </div>
           <div>
-            <span className="label">USD / AWG</span>
+            <span className="label">USD / FL</span>
             <span className="val">1.7500</span>
           </div>
           <div>

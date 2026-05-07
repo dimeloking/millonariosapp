@@ -292,7 +292,7 @@ export function EnvioDrawer({
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="envio-cambio">Cambio</label>
+              <label htmlFor="envio-cambio">Cambio USD</label>
               <div className="input-group">
                 <input
                   className="fin-input mono"
@@ -305,7 +305,7 @@ export function EnvioDrawer({
               </div>
             </div>
             <div className="form-field">
-              <label htmlFor="envio-ratio">Division FL / USD</label>
+              <label htmlFor="envio-ratio">Cambio FL</label>
               <div className="input-group">
                 <input
                   className="fin-input mono"
@@ -315,10 +315,6 @@ export function EnvioDrawer({
                   onChange={(event) => setRatio(event.target.value)}
                 />
                 <span className="suffix">FL</span>
-              </div>
-              <div className="input-help mono">
-                Dolares = florines /{' '}
-                <span>{fmtRate(calculations.ratioNum)}</span>
               </div>
             </div>
           </div>

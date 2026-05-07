@@ -7,18 +7,15 @@ import {
   deleteEnvioAction,
   updateEnvioAction,
 } from '@/app/dashboard/actions';
-import { DayPaginationHeader } from '@/components/day-pagination-header';
+import {
+  DayPaginationControls,
+  DayPaginationHeader,
+} from '@/components/day-pagination-header';
 import { EnvioDrawer, NewEnvioButton } from '@/components/new-envio-button';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
 import { OperatorChip } from '@/components/operator-chip';
 import type { Envio } from '@/lib/data';
-import {
-  fmtAWG,
-  fmtCOP,
-  fmtDate,
-  fmtNum,
-  fmtUSD,
-} from '@/lib/formatters';
+import { fmtAWG, fmtCOP, fmtDate, fmtNum, fmtUSD } from '@/lib/formatters';
 import type { EnvioRecord } from '@/lib/movements-data';
 
 const OPERATORS = ['Todos', 'ROYMAN', 'ERIKA', 'LINA', 'JUAN PABLO'] as const;
@@ -265,32 +262,16 @@ export function EnviosPageClient({
               marginBottom: 12,
             }}
           >
-            <DayPaginationHeader currentDay={currentDay} currentPage={currentPage} totalPages={totalPages} />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === totalPages}
-                style={{
-                  fontSize: 12,
-                  opacity: currentPage === totalPages ? 0.45 : 1,
-                }}
-                type="button"
-                onClick={() =>
-                  setPage((value) => Math.min(totalPages, value + 1))
-                }
-              >
-                Siguiente
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={currentPage === 1}
-                style={{ fontSize: 12, opacity: currentPage === 1 ? 0.45 : 1 }}
-                type="button"
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
-              >
-                Anterior
-              </button>
-            </div>
+            <DayPaginationHeader
+              currentDay={currentDay}
+              currentPage={currentPage}
+              totalPages={totalPages}
+            />
+            <DayPaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
 

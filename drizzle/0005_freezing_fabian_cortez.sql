@@ -1,0 +1,1 @@
+ALTER TABLE "pendientes" ADD COLUMN IF NOT EXISTS "valor" integer DEFAULT 0 NOT NULL;
