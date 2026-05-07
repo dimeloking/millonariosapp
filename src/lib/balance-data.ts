@@ -116,6 +116,7 @@ export async function getBalancePeriodData(
         entradaDolar: item.entradaDolar,
         fecha: String(item.fecha),
         moneda: item.moneda as Moneda,
+        operador: item.operador,
         total: item.total,
       })),
       envios: periodEnvios.map((item) => ({
@@ -140,6 +141,7 @@ export async function getBalancePeriodData(
         descripcion: item.descripcion,
         fecha: String(item.fecha),
         moneda: item.moneda as Moneda,
+        operador: item.operador,
         valor: item.valor,
         valorDolar: item.valorDolar,
       })),

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Trash2 } from 'lucide-react';
 import {
   createSalidaExternaAction,
@@ -13,13 +14,12 @@ import {
 } from '@/components/day-pagination-header';
 import { fmtAWG, fmtCOP, fmtDate, fmtNum, fmtUSD } from '@/lib/formatters';
 import type { EnvioRecord, SalidaExternaRecord } from '@/lib/movements-data';
+import { resolveOperatorName } from '@/lib/operator';
 
 type SalidasExternasPageClientProps = {
   envios: EnvioRecord[];
   initialRows: SalidaExternaRecord[];
 };
-
-const OPERADORES = ['ROYMAN', 'ERIKA', 'LINA', 'JUAN PABLO'] as const;
 
 function todayISO() {
   const now = new Date();
@@ -43,6 +43,13 @@ export function SalidasExternasPageClient({
   envios,
   initialRows,
 }: SalidasExternasPageClientProps) {
+  const { user } = useUser();
+  const manualEmpleado = resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress
+  );
   const [rows, setRows] = useState(initialRows);
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -50,8 +57,6 @@ export function SalidasExternasPageClient({
   const [page, setPage] = useState(1);
   const [manualBusy, setManualBusy] = useState(false);
   const [manualFecha, setManualFecha] = useState(todayISO());
-  const [manualEmpleado, setManualEmpleado] =
-    useState<(typeof OPERADORES)[number]>('ROYMAN');
   const [manualDescripcion, setManualDescripcion] = useState('Retorno manual');
   const [manualDolares, setManualDolares] = useState('');
   const [manualFlorines, setManualFlorines] = useState('');
@@ -268,19 +273,7 @@ export function SalidasExternasPageClient({
           </div>
           <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
             <label>Operador</label>
-            <select
-              className="fin-input"
-              value={manualEmpleado}
-              onChange={(event) =>
-                setManualEmpleado(event.target.value as typeof manualEmpleado)
-              }
-            >
-              {OPERADORES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+            <input className="fin-input mono" readOnly value={manualEmpleado} />
           </div>
           <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
             <label>Descripción</label>

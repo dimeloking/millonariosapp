@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 import type { Entrada } from '@/lib/data';
 import { fmtCOP, fmtUSD } from '@/lib/formatters';
+import { resolveOperatorName } from '@/lib/operator';
 
 type EntradaDrawerProps = {
   initialEntrada?: Entrada;
@@ -58,6 +60,14 @@ export function EntradaDrawer({
   onDeleteAction,
   onSaveAction,
 }: EntradaDrawerProps) {
+  const { user } = useUser();
+  const operador = resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress,
+    initialEntrada?.operador
+  );
   const initialMoneda =
     initialEntrada?.moneda ?? (initialEntrada?.entradaDolar ? 'USD' : 'COP');
   const [fecha, setFecha] = useState(initialEntrada?.fecha ?? todayISO());
@@ -89,6 +99,7 @@ export function EntradaDrawer({
       entradaDolar: moneda === 'USD' && total > 0 ? total : null,
       fecha,
       moneda,
+      operador,
       total: moneda === 'COP' ? Math.round(total) : 0,
     });
   };
@@ -124,6 +135,16 @@ export function EntradaDrawer({
               type="date"
               value={fecha}
               onChange={(event) => setFecha(event.target.value)}
+            />
+          </div>
+
+          <div className="form-field drawer-field">
+            <label htmlFor="entrada-operador">Operador</label>
+            <input
+              className="fin-input mono"
+              id="entrada-operador"
+              readOnly
+              value={operador}
             />
           </div>
 

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 import type { Salida } from '@/lib/data';
 import { fmtCOP, fmtUSD } from '@/lib/formatters';
+import { resolveOperatorName } from '@/lib/operator';
 
 type SalidaDrawerProps = {
   initialSalida?: Salida;
@@ -66,6 +68,14 @@ export function SalidaDrawer({
   onDeleteAction,
   onSaveAction,
 }: SalidaDrawerProps) {
+  const { user } = useUser();
+  const operador = resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress,
+    initialSalida?.operador
+  );
   const initialMoneda =
     initialSalida?.moneda ?? (initialSalida?.valorDolar ? 'USD' : 'COP');
   const [fecha, setFecha] = useState(initialSalida?.fecha ?? todayISO());
@@ -99,6 +109,7 @@ export function SalidaDrawer({
       descripcion: descripcion.trim() || 'Sin descripción',
       fecha,
       moneda,
+      operador,
       valor: moneda === 'COP' ? Math.round(total) : 0,
       valorDolar: moneda === 'USD' && total > 0 ? total : null,
     });
@@ -155,6 +166,16 @@ export function SalidaDrawer({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-field drawer-field">
+            <label htmlFor="salida-operador">Operador</label>
+            <input
+              className="fin-input mono"
+              id="salida-operador"
+              readOnly
+              value={operador}
+            />
           </div>
 
           <div className="form-field drawer-field">

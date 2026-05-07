@@ -2,11 +2,11 @@
 
 import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 import type { Envio } from '@/lib/data';
 import { fmtCOP, fmtRate, fmtUSD } from '@/lib/formatters';
-
-const OPERATORS = ['ROYMAN', 'ERIKA', 'LINA', 'JUAN PABLO'] as const;
+import { resolveOperatorName } from '@/lib/operator';
 
 const BANKS = [
   { value: 'BANCOLOMBIA', label: 'Bancolombia' },
@@ -87,7 +87,6 @@ function todayDefaults() {
     fecha: todayISO(),
     florines: '',
     nombre: '',
-    operador: 'ROYMAN' as (typeof OPERATORS)[number],
     pesos: '',
     ratio: '1.75',
   };
@@ -132,13 +131,20 @@ export function EnvioDrawer({
   onDeleteAction,
   onSaveAction,
 }: EnvioDrawerProps) {
+  const { user } = useUser();
+  const operador = resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress,
+    initialEnvio?.operador
+  );
   const defaults = initialEnvio
     ? {
         cambio: String(initialEnvio.cambio),
         fecha: initialEnvio.fecha,
         florines: String(initialEnvio.florines),
         nombre: initialEnvio.nombre,
-        operador: initialEnvio.operador,
         pesos: formatThousands(String(initialEnvio.pesos)),
         ratio:
           initialEnvio.dolares > 0
@@ -148,9 +154,6 @@ export function EnvioDrawer({
     : todayDefaults();
 
   const [fecha, setFecha] = useState(defaults.fecha);
-  const [operador, setOperador] = useState<(typeof OPERATORS)[number]>(
-    defaults.operador
-  );
   const [nombre, setNombre] = useState(defaults.nombre);
   const [bancoOrigen, setBancoOrigen] =
     useState<(typeof BANKS)[number]['value']>('BANCOLOMBIA');
@@ -245,20 +248,12 @@ export function EnvioDrawer({
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="envio-operador">Operador</label>
-              <select
-                className="fin-input"
+              <input
+                className="fin-input mono"
                 id="envio-operador"
+                readOnly
                 value={operador}
-                onChange={(event) =>
-                  setOperador(event.target.value as typeof operador)
-                }
-              >
-                {OPERATORS.map((op) => (
-                  <option key={op} value={op}>
-                    {op}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div className="form-field">
               <label htmlFor="envio-cliente">Cliente</label>

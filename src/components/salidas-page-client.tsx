@@ -25,6 +25,7 @@ const CATEGORIES = [
   'Impuestos',
   'Otros',
 ] as const;
+const CURRENCIES = ['Todas', 'COP', 'USD'] as const;
 const COLORS: Record<Salida['categoria'], string> = {
   Créditos: '#c5a3d6',
   Impuestos: '#e07575',
@@ -50,6 +51,8 @@ export function SalidasPageClient({
   const [search, setSearch] = useState('');
   const [category, setCategory] =
     useState<(typeof CATEGORIES)[number]>('Todas');
+  const [currency, setCurrency] =
+    useState<(typeof CURRENCIES)[number]>('Todas');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
@@ -59,16 +62,18 @@ export function SalidasPageClient({
   const filtered = useMemo(
     () =>
       rows.filter((row) => {
-        const matchText = row.descripcion
-          .toLowerCase()
-          .includes(search.toLowerCase());
+        const text = `${row.descripcion} ${row.operador}`.toLowerCase();
+        const matchText = text.includes(search.toLowerCase());
         const matchCategory =
           category === 'Todas' || row.categoria === category;
+        const matchCurrency = currency === 'Todas' || row.moneda === currency;
         const matchFrom = !dateFrom || row.fecha >= dateFrom;
         const matchTo = !dateTo || row.fecha <= dateTo;
-        return matchText && matchCategory && matchFrom && matchTo;
+        return (
+          matchText && matchCategory && matchCurrency && matchFrom && matchTo
+        );
       }),
-    [category, dateFrom, dateTo, rows, search]
+    [category, currency, dateFrom, dateTo, rows, search]
   );
   const byDay = useMemo(() => {
     const groups: Record<string, SalidaRecord[]> = {};
@@ -177,6 +182,21 @@ export function SalidasPageClient({
               </button>
             ))}
           </div>
+          <div className="segmented">
+            {CURRENCIES.map((item) => (
+              <button
+                className={currency === item ? 'active' : ''}
+                key={item}
+                type="button"
+                onClick={() => {
+                  setCurrency(item);
+                  setPage(1);
+                }}
+              >
+                {item === 'COP' ? 'Pesos' : item === 'USD' ? 'USD' : item}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div
@@ -253,6 +273,7 @@ export function SalidasPageClient({
               <thead>
                 <tr>
                   <th>Fecha</th>
+                  <th>Operador</th>
                   <th>Descripción</th>
                   <th>Categoría</th>
                   <th>Moneda</th>
@@ -271,6 +292,7 @@ export function SalidasPageClient({
                         >
                           {fmtDate(row.fecha)}
                         </td>
+                        <td>{row.operador}</td>
                         <td className="td-name">{row.descripcion}</td>
                         <td>
                           <span
@@ -309,7 +331,7 @@ export function SalidasPageClient({
                   </Fragment>
                 ) : (
                   <tr>
-                    <td colSpan={6} style={{ color: '#858a93', padding: 18 }}>
+                    <td colSpan={7} style={{ color: '#858a93', padding: 18 }}>
                       Sin salidas para el filtro actual.
                     </td>
                   </tr>
@@ -319,7 +341,7 @@ export function SalidasPageClient({
                 <tfoot>
                   <tr style={{ borderTop: '1px solid #2a2f38' }}>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="mono"
                       style={{
                         color: '#858a93',

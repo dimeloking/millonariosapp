@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useMemo, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Trash2 } from 'lucide-react';
 import {
   createPendienteAction,
@@ -14,6 +15,7 @@ import {
 } from '@/components/day-pagination-header';
 import { fmtCOP, fmtDate } from '@/lib/formatters';
 import type { PendienteRecord } from '@/lib/movements-data';
+import { resolveOperatorName } from '@/lib/operator';
 
 const STATES = ['Todos', 'Abiertos', 'Completados'] as const;
 
@@ -34,6 +36,13 @@ export function PendientesPageClient({
 }: {
   initialRows: PendienteRecord[];
 }) {
+  const { user } = useUser();
+  const operador = resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress
+  );
   const [rows, setRows] = useState(initialRows);
   const [search, setSearch] = useState('');
   const [state, setState] = useState<(typeof STATES)[number]>('Todos');
@@ -46,7 +55,8 @@ export function PendientesPageClient({
 
   const filtered = useMemo(() => {
     return rows.filter((item) => {
-      const matchText = item.texto.toLowerCase().includes(search.toLowerCase());
+      const text = `${item.texto} ${item.operador}`.toLowerCase();
+      const matchText = text.includes(search.toLowerCase());
       const matchState =
         state === 'Todos' ||
         (state === 'Abiertos' && !item.completado) ||
@@ -92,6 +102,7 @@ export function PendientesPageClient({
         completado: false,
         fecha,
         id: createdId ?? `pendiente-${crypto.randomUUID()}`,
+        operador,
         texto: cleanText,
         valor: pendingValue,
       },
@@ -167,7 +178,7 @@ export function PendientesPageClient({
             alignItems: 'end',
             display: 'grid',
             gap: 12,
-            gridTemplateColumns: '170px 1fr 180px auto',
+            gridTemplateColumns: '150px 150px 1fr 180px auto',
             marginBottom: 18,
             padding: 16,
           }}
@@ -180,6 +191,10 @@ export function PendientesPageClient({
               value={fecha}
               onChange={(event) => setFecha(event.target.value)}
             />
+          </div>
+          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
+            <label>Operador</label>
+            <input className="fin-input mono" readOnly value={operador} />
           </div>
           <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
             <label>Nuevo pendiente</label>
@@ -308,6 +323,7 @@ export function PendientesPageClient({
               <thead>
                 <tr>
                   <th>Fecha</th>
+                  <th>Operador</th>
                   <th>Pendiente</th>
                   <th style={{ textAlign: 'right' }}>Valor</th>
                   <th>Estado</th>
@@ -325,6 +341,7 @@ export function PendientesPageClient({
                         >
                           {fmtDate(item.fecha)}
                         </td>
+                        <td>{item.operador}</td>
                         <td
                           className="td-name"
                           style={{
@@ -393,7 +410,7 @@ export function PendientesPageClient({
                   </Fragment>
                 ) : (
                   <tr>
-                    <td colSpan={5} style={{ color: '#858a93', padding: 18 }}>
+                    <td colSpan={6} style={{ color: '#858a93', padding: 18 }}>
                       Sin pendientes para el filtro actual.
                     </td>
                   </tr>

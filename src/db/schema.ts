@@ -26,6 +26,7 @@ export const envios = pgTable('envios', {
 export const entradas = pgTable('entradas', {
   id: serial('id').primaryKey(),
   fecha: date('fecha').notNull(),
+  operador: text('operador').notNull().default('OPERADOR'),
   descripcion: text('descripcion').notNull(),
   moneda: text('moneda').notNull().default('COP'),
   entradaDolar: real('entrada_dolar'),
@@ -37,6 +38,7 @@ export const entradas = pgTable('entradas', {
 export const salidas = pgTable('salidas', {
   id: serial('id').primaryKey(),
   fecha: date('fecha').notNull(),
+  operador: text('operador').notNull().default('OPERADOR'),
   descripcion: text('descripcion').notNull(),
   categoria: text('categoria').notNull(), // Pagos | Créditos | Viajes | Impuestos | Otros
   moneda: text('moneda').notNull().default('COP'),
@@ -62,6 +64,7 @@ export const salidasExternas = pgTable('salidas_externas', {
 export const pendientes = pgTable('pendientes', {
   id: serial('id').primaryKey(),
   fecha: date('fecha').notNull(),
+  operador: text('operador').notNull().default('OPERADOR'),
   texto: text('texto').notNull(),
   valor: integer('valor').notNull().default(0),
   completado: boolean('completado').notNull().default(false),

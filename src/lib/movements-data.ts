@@ -10,8 +10,8 @@ import {
 import type { Entrada, Envio, Moneda, Salida } from '@/lib/data';
 
 export type EnvioRecord = Envio & { id: number | string };
-export type EntradaRecord = Entrada & { id: number | string };
-export type SalidaRecord = Salida & { id: number | string };
+export type EntradaRecord = Entrada & { id: number | string; operador: string };
+export type SalidaRecord = Salida & { id: number | string; operador: string };
 export type SalidaExternaRecord = {
   cambio: number;
   descripcion: string;
@@ -28,6 +28,7 @@ export type PendienteRecord = {
   completado: boolean;
   fecha: string;
   id: number | string;
+  operador: string;
   texto: string;
   valor: number;
 };
@@ -70,6 +71,7 @@ export async function getEntradasData(): Promise<EntradaRecord[]> {
       fecha: String(row.fecha),
       id: row.id,
       moneda: row.moneda as Moneda,
+      operador: row.operador,
       total: row.total,
     }));
   } catch {
@@ -90,6 +92,7 @@ export async function getSalidasData(): Promise<SalidaRecord[]> {
       fecha: String(row.fecha),
       id: row.id,
       moneda: row.moneda as Moneda,
+      operador: row.operador,
       valor: row.valor,
       valorDolar: row.valorDolar,
     }));
@@ -133,6 +136,7 @@ export async function getPendientesData(): Promise<PendienteRecord[]> {
       completado: row.completado,
       fecha: String(row.fecha),
       id: row.id,
+      operador: row.operador,
       texto: row.texto,
       valor: row.valor,
     }));

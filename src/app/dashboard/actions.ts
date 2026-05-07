@@ -1,6 +1,7 @@
 'use server';
 
 import { eq } from 'drizzle-orm';
+import { currentUser } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/db/schema';
 import type { Entrada, Envio, Salida } from '@/lib/data';
 import type { SalidaExternaRecord } from '@/lib/movements-data';
+import { resolveOperatorName } from '@/lib/operator';
 
 function revalidateDashboardPaths() {
   revalidatePath('/dashboard');
@@ -24,7 +26,20 @@ function revalidateDashboardPaths() {
   revalidatePath('/dashboard/pendientes');
 }
 
+async function getCurrentOperator() {
+  const user = await currentUser();
+
+  return resolveOperatorName(
+    user?.fullName,
+    user?.firstName,
+    user?.username,
+    user?.primaryEmailAddress?.emailAddress
+  );
+}
+
 export async function createEnvioAction(payload: Envio) {
+  const operador = await getCurrentOperator();
+
   const [created] = await db
     .insert(envios)
     .values({
@@ -34,7 +49,7 @@ export async function createEnvioAction(payload: Envio) {
       florines: payload.florines,
       ganancia: payload.ganancia,
       nombre: payload.nombre,
-      operador: payload.operador,
+      operador,
       pesos: payload.pesos,
       estipulado: payload.estipulado,
     })
@@ -45,6 +60,8 @@ export async function createEnvioAction(payload: Envio) {
 }
 
 export async function updateEnvioAction(id: number, payload: Envio) {
+  const operador = await getCurrentOperator();
+
   await db
     .update(envios)
     .set({
@@ -54,7 +71,7 @@ export async function updateEnvioAction(id: number, payload: Envio) {
       florines: payload.florines,
       ganancia: payload.ganancia,
       nombre: payload.nombre,
-      operador: payload.operador,
+      operador,
       pesos: payload.pesos,
       estipulado: payload.estipulado,
     })
@@ -69,6 +86,8 @@ export async function deleteEnvioAction(id: number) {
 }
 
 export async function createEntradaAction(payload: Entrada) {
+  const operador = await getCurrentOperator();
+
   const [created] = await db
     .insert(entradas)
     .values({
@@ -77,6 +96,7 @@ export async function createEntradaAction(payload: Entrada) {
       entradaDolar: payload.entradaDolar,
       fecha: payload.fecha,
       moneda: payload.moneda,
+      operador,
       total: payload.total,
     })
     .returning({ id: entradas.id });
@@ -86,6 +106,8 @@ export async function createEntradaAction(payload: Entrada) {
 }
 
 export async function updateEntradaAction(id: number, payload: Entrada) {
+  const operador = await getCurrentOperator();
+
   await db
     .update(entradas)
     .set({
@@ -94,6 +116,7 @@ export async function updateEntradaAction(id: number, payload: Entrada) {
       entradaDolar: payload.entradaDolar,
       fecha: payload.fecha,
       moneda: payload.moneda,
+      operador,
       total: payload.total,
     })
     .where(eq(entradas.id, id));
@@ -107,6 +130,8 @@ export async function deleteEntradaAction(id: number) {
 }
 
 export async function createSalidaAction(payload: Salida) {
+  const operador = await getCurrentOperator();
+
   const [created] = await db
     .insert(salidas)
     .values({
@@ -114,6 +139,7 @@ export async function createSalidaAction(payload: Salida) {
       descripcion: payload.descripcion,
       fecha: payload.fecha,
       moneda: payload.moneda,
+      operador,
       valor: payload.valor,
       valorDolar: payload.valorDolar,
     })
@@ -124,6 +150,8 @@ export async function createSalidaAction(payload: Salida) {
 }
 
 export async function updateSalidaAction(id: number, payload: Salida) {
+  const operador = await getCurrentOperator();
+
   await db
     .update(salidas)
     .set({
@@ -131,6 +159,7 @@ export async function updateSalidaAction(id: number, payload: Salida) {
       descripcion: payload.descripcion,
       fecha: payload.fecha,
       moneda: payload.moneda,
+      operador,
       valor: payload.valor,
       valorDolar: payload.valorDolar,
     })
@@ -152,14 +181,17 @@ export type SalidaExternaPayload = Omit<
 };
 
 export async function createSalidaExternaAction(payload: SalidaExternaPayload) {
+  const operador = await getCurrentOperator();
+
   const [createdEntrada] = await db
     .insert(entradas)
     .values({
       cambio: payload.cambio,
-      descripcion: `DEV EXT · ${payload.empleado} · ${payload.descripcion}`,
+      descripcion: `DEV EXT · ${operador} · ${payload.descripcion}`,
       entradaDolar: payload.dolares || null,
       fecha: payload.fecha,
       moneda: 'COP',
+      operador,
       total: payload.pesos,
     })
     .returning({ id: entradas.id });
@@ -170,7 +202,7 @@ export async function createSalidaExternaAction(payload: SalidaExternaPayload) {
       cambio: payload.cambio,
       descripcion: payload.descripcion,
       dolares: payload.dolares,
-      empleado: payload.empleado,
+      empleado: operador,
       envioId: payload.envioId,
       entradaId: createdEntrada?.id ?? null,
       fecha: payload.fecha,
@@ -211,6 +243,7 @@ export async function devolverEnvioSaldoAction(id: number) {
     };
   }
 
+  const operador = await getCurrentOperator();
   const totalDevuelto = Math.round(envio.pesos + envio.ganancia);
   const descripcion = `Retorno envío ${envio.nombre}`;
 
@@ -218,10 +251,11 @@ export async function devolverEnvioSaldoAction(id: number) {
     .insert(entradas)
     .values({
       cambio: envio.cambio,
-      descripcion: `DEV EXT · ${envio.operador} · ${descripcion}`,
+      descripcion: `DEV EXT · ${operador} · ${descripcion}`,
       entradaDolar: envio.dolares,
       fecha: envio.fecha,
       moneda: 'COP',
+      operador,
       total: totalDevuelto,
     })
     .returning({ id: entradas.id });
@@ -232,7 +266,7 @@ export async function devolverEnvioSaldoAction(id: number) {
       cambio: envio.cambio,
       descripcion,
       dolares: envio.dolares,
-      empleado: envio.operador,
+      empleado: operador,
       envioId: envio.id,
       entradaId: createdEntrada?.id ?? null,
       fecha: envio.fecha,
@@ -300,11 +334,14 @@ export type PendientePayload = {
 };
 
 export async function createPendienteAction(payload: PendientePayload) {
+  const operador = await getCurrentOperator();
+
   const [created] = await db
     .insert(pendientes)
     .values({
       completado: false,
       fecha: payload.fecha,
+      operador,
       texto: payload.texto,
       valor: payload.valor,
     })

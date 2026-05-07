@@ -9,13 +9,14 @@ export type Envio = {
   florines: number;
   dolares: number;
   ganancia: number;
-  operador: 'ROYMAN' | 'ERIKA' | 'LINA' | 'JUAN PABLO';
+  operador: string;
 };
 
 export type Moneda = 'COP' | 'USD';
 
 export type Entrada = {
   fecha: string;
+  operador?: string;
   descripcion: string;
   moneda: Moneda;
   entradaDolar: number | null;
@@ -25,6 +26,7 @@ export type Entrada = {
 
 export type Salida = {
   fecha: string;
+  operador?: string;
   descripcion: string;
   categoria: 'Pagos' | 'Créditos' | 'Viajes' | 'Impuestos' | 'Otros';
   moneda: Moneda;
