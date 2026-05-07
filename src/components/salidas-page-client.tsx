@@ -388,14 +388,24 @@ export function SalidasPageClient({
               const createdId = await createSalidaAction(salida);
               setRows((current) => [
                 ...current,
-                { ...salida, id: createdId ?? `salida-${crypto.randomUUID()}` },
+                {
+                  ...salida,
+                  id: createdId ?? `salida-${crypto.randomUUID()}`,
+                  operador: salida.operador ?? 'OPERADOR',
+                },
               ]);
             } else if (editingRow) {
               if (typeof editingRow.id === 'number')
                 await updateSalidaAction(editingRow.id, salida);
               setRows((current) =>
                 current.map((row) =>
-                  row.id === editingRow.id ? { ...row, ...salida } : row
+                  row.id === editingRow.id
+                    ? {
+                        ...row,
+                        ...salida,
+                        operador: salida.operador ?? row.operador,
+                      }
+                    : row
                 )
               );
             }

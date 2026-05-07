@@ -336,6 +336,7 @@ export function EntradasPageClient({
                 {
                   ...entrada,
                   id: createdId ?? `entrada-${crypto.randomUUID()}`,
+                  operador: entrada.operador ?? 'OPERADOR',
                 },
               ]);
             } else if (editingRow) {
@@ -343,7 +344,13 @@ export function EntradasPageClient({
                 await updateEntradaAction(editingRow.id, entrada);
               setRows((current) =>
                 current.map((row) =>
-                  row.id === editingRow.id ? { ...row, ...entrada } : row
+                  row.id === editingRow.id
+                    ? {
+                        ...row,
+                        ...entrada,
+                        operador: entrada.operador ?? row.operador,
+                      }
+                    : row
                 )
               );
             }
