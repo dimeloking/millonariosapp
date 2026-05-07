@@ -179,7 +179,8 @@
   padding: 48px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 48px;
 }
 .login-left::before {
   content: '';
@@ -220,6 +221,7 @@
 .login-hero {
   position: relative;
   z-index: 1;
+  margin-top: 120px;
 }
 .login-hero .eyebrow {
   font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
