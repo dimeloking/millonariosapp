@@ -1,56 +1,61 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { updateSaldoBaseAction } from '@/app/dashboard/actions';
 import { ClientTopbarPendingBell } from '@/components/client-topbar-pending-bell';
 import type { BalancePeriodData } from '@/lib/balance-data';
-import { fmtCOP, fmtUSD, formatPeriodLabel } from '@/lib/formatters';
+import { fmtAWG, fmtCOP, fmtUSD, formatPeriodLabel } from '@/lib/formatters';
 
 type BalanceViewProps = {
   data: BalancePeriodData;
 };
 
+type CurrencyRow = {
+  danger?: boolean;
+  label: string;
+  value: string;
+};
+
+type CurrencySection = {
+  accent: string;
+  balanceLabel: string;
+  balanceValue: string;
+  rows: CurrencyRow[];
+  subtitle: string;
+  title: string;
+};
+
+function fmtDebit(value: number, formatter: (value: number) => string) {
+  return value > 0 ? `-${formatter(value)}` : formatter(0);
+}
+
+function getMonthOptions(selectedMonth: string) {
+  const [selectedYear] = selectedMonth.split('-');
+  const year = Number(selectedYear) || new Date().getFullYear();
+
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = `${year}-${String(index + 1).padStart(2, '0')}`;
+    return {
+      label: formatPeriodLabel(month),
+      value: month,
+    };
+  });
+}
+
 export function BalanceView({ data }: BalanceViewProps) {
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const router = useRouter();
   const [saldoBaseInput, setSaldoBaseInput] = useState(
     String(data.periodo.saldoAnterior)
   );
   const [saldoBase, setSaldoBase] = useState(data.periodo.saldoAnterior);
   const [savingSaldoBase, setSavingSaldoBase] = useState(false);
 
-  const filteredEnvios = useMemo(() => {
-    return data.envios.filter((item) => {
-      const matchFrom = !dateFrom || item.fecha >= dateFrom;
-      const matchTo = !dateTo || item.fecha <= dateTo;
-      return matchFrom && matchTo;
-    });
-  }, [data.envios, dateFrom, dateTo]);
-
-  const filteredEntradas = useMemo(() => {
-    return data.entradas.filter((item) => {
-      const matchFrom = !dateFrom || item.fecha >= dateFrom;
-      const matchTo = !dateTo || item.fecha <= dateTo;
-      return matchFrom && matchTo;
-    });
-  }, [data.entradas, dateFrom, dateTo]);
-
-  const filteredSalidas = useMemo(() => {
-    return data.salidas.filter((item) => {
-      const matchFrom = !dateFrom || item.fecha >= dateFrom;
-      const matchTo = !dateTo || item.fecha <= dateTo;
-      return matchFrom && matchTo;
-    });
-  }, [data.salidas, dateFrom, dateTo]);
-
-  const filteredSalidasExternas = useMemo(() => {
-    return data.salidasExternas.filter((item) => {
-      const matchFrom = !dateFrom || item.fecha >= dateFrom;
-      const matchTo = !dateTo || item.fecha <= dateTo;
-      return matchFrom && matchTo;
-    });
-  }, [data.salidasExternas, dateFrom, dateTo]);
-
+  const monthOptions = getMonthOptions(data.periodo.mes);
+  const filteredEnvios = data.envios;
+  const filteredEntradas = data.entradas;
+  const filteredSalidas = data.salidas;
+  const filteredSalidasExternas = data.salidasExternas;
   const saldoAnterior = saldoBase;
   const entradasPesos = filteredEntradas.reduce(
     (sum, item) => sum + (item.moneda === 'COP' ? item.total : 0),
@@ -157,6 +162,75 @@ export function BalanceView({ data }: BalanceViewProps) {
 
       return acc;
     }, []);
+
+  const currencySections: CurrencySection[] = [
+    {
+      accent: '#d4a574',
+      balanceLabel: 'Saldo actual COP',
+      balanceValue: fmtCOP(balance),
+      rows: [
+        { label: 'Saldo base Colombia', value: fmtCOP(saldoAnterior) },
+        { label: 'Entradas directas', value: fmtCOP(entradasDirectas) },
+        { label: 'Retornos ext.', value: fmtCOP(retornosExternos) },
+        {
+          danger: true,
+          label: 'Salidas COP',
+          value: fmtDebit(gastos, fmtCOP),
+        },
+        {
+          danger: true,
+          label: 'Envíos COP',
+          value: fmtDebit(totalEnvios, fmtCOP),
+        },
+        { label: 'Ganancias del período', value: fmtCOP(ganancias) },
+      ],
+      subtitle: 'Saldo base + entradas COP + retornos - salidas - envíos',
+      title: 'Colombia · COP',
+    },
+    {
+      accent: '#7aa7d9',
+      balanceLabel: 'Saldo actual USD',
+      balanceValue: fmtUSD(balanceUsd),
+      rows: [
+        { label: 'Entradas USD', value: fmtUSD(entradasUsd) },
+        { label: 'USD enviados', value: fmtUSD(totalDolares) },
+        {
+          danger: true,
+          label: 'USD retornados',
+          value: fmtDebit(dolaresDevueltos, fmtUSD),
+        },
+        { label: 'Pendiente Aruba USD', value: fmtUSD(cajaArubaUsd) },
+        {
+          danger: true,
+          label: 'Salidas USD',
+          value: fmtDebit(gastosUsd, fmtUSD),
+        },
+        {
+          label: 'Cambio promedio',
+          value: cambioPromedio > 0 ? fmtCOP(cambioPromedio) : '-',
+        },
+      ],
+      subtitle: 'Entradas USD + pendiente Aruba - salidas USD',
+      title: 'Dólares · USD',
+    },
+    {
+      accent: '#9bd6c3',
+      balanceLabel: 'Pendiente FL',
+      balanceValue: fmtAWG(cajaArubaFl),
+      rows: [
+        { label: 'FL enviados', value: fmtAWG(totalFlorines) },
+        {
+          danger: true,
+          label: 'FL retornados',
+          value: fmtDebit(florinesDevueltos, fmtAWG),
+        },
+        { label: 'Pendiente Aruba FL', value: fmtAWG(cajaArubaFl) },
+      ],
+      subtitle: 'Florines enviados a Aruba menos florines retornados',
+      title: 'Florines · FL',
+    },
+  ];
+
   return (
     <>
       <div className="topbar">
@@ -180,51 +254,37 @@ export function BalanceView({ data }: BalanceViewProps) {
             alignItems: 'end',
             display: 'grid',
             gap: 12,
-            gridTemplateColumns: '180px 180px auto',
+            gridTemplateColumns: '240px auto',
             marginBottom: 18,
           }}
         >
           <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
-            <label htmlFor="balance-date-from">Desde</label>
-            <input
-              className="fin-input mono"
-              id="balance-date-from"
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </div>
-          <div className="form-field" style={{ gap: 6, marginBottom: 0 }}>
-            <label htmlFor="balance-date-to">Hasta</label>
-            <input
-              className="fin-input mono"
-              id="balance-date-to"
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
+            <label htmlFor="balance-month">Mes</label>
+            <select
+              className="fin-input"
+              id="balance-month"
+              value={data.periodo.mes}
+              onChange={(event) => {
+                router.push(`/dashboard/balance?mes=${event.target.value}`);
+              }}
+            >
+              {monthOptions.map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div
             style={{ display: 'flex', gap: 8, justifyContent: 'flex-start' }}
           >
-            <button
-              className="btn btn-ghost"
-              style={{ fontSize: 12 }}
-              type="button"
-              onClick={() => {
-                setDateFrom('');
-                setDateTo('');
-              }}
-            >
-              Limpiar fechas
-            </button>
             <div
               className="mono"
               style={{ alignSelf: 'center', color: '#858a93', fontSize: 11 }}
             >
-              {filteredEntradas.length} entradas · {filteredSalidas.length}{' '}
-              salidas · {filteredEnvios.length} envíos ·{' '}
-              {filteredSalidasExternas.length} salidas ext.
+              Mes completo · {filteredEntradas.length} entradas ·{' '}
+              {filteredSalidas.length} salidas · {filteredEnvios.length} envíos
+              · {filteredSalidasExternas.length} salidas ext.
             </div>
           </div>
         </div>
@@ -274,158 +334,76 @@ export function BalanceView({ data }: BalanceViewProps) {
           </button>
         </form>
 
-        <div
-          className="panel"
-          style={{ marginBottom: 18, overflow: 'hidden', padding: 0 }}
-        >
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Resumen mensual</div>
-              <div className="panel-sub">
-                Saldo anterior + entradas COP - gastos COP - envíos
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
-              borderTop: '1px solid #22262d',
-            }}
-          >
-            {[
-              { label: 'Saldo anterior', value: fmtCOP(saldoAnterior) },
-              { label: 'Entradas COP', value: fmtCOP(entradasDirectas) },
-              { label: 'Retornos ext.', value: fmtCOP(retornosExternos) },
-              { label: 'Entradas USD', value: fmtUSD(entradasUsd) },
-              { label: 'Ganancias', value: fmtCOP(ganancias) },
-              { label: 'Gastos COP', value: fmtCOP(gastos), danger: true },
-              { label: 'Salidas USD', value: fmtUSD(gastosUsd), danger: true },
-              { label: 'Total envíos', value: fmtCOP(totalEnvios) },
-              { label: 'USD envíos', value: fmtUSD(totalDolares) },
-              { label: 'Balance COP', value: fmtCOP(balance), accent: true },
-              { label: 'Balance USD', value: fmtUSD(balanceUsd), accent: true },
-            ].map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  borderRight: '1px solid #22262d',
-                  padding: '18px 16px',
-                }}
-              >
-                <div
-                  className="mono"
-                  style={{
-                    color: '#858a93',
-                    fontSize: 10,
-                    marginBottom: 8,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {item.label}
-                </div>
-                <div
-                  className="serif"
-                  style={{
-                    color: item.accent
-                      ? '#d4a574'
-                      : item.danger
-                        ? '#e07575'
-                        : '#e8eaed',
-                    fontSize: 26,
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {item.value}
-                </div>
-              </div>
-            ))}
+        <div style={{ marginBottom: 12 }}>
+          <div className="panel-title">Balance por moneda</div>
+          <div className="panel-sub">
+            COP, USD y FL separados para revisar cada caja sin mezclar valores.
           </div>
         </div>
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: 16,
-            marginBottom: 16,
+            marginBottom: 18,
           }}
         >
-          <div className="panel">
-            <div className="panel-header">
-              <div>
-                <div className="panel-title">Colombia · COP</div>
-                <div className="panel-sub">Saldo real desde movimientos</div>
-              </div>
-            </div>
-            <div style={{ padding: '14px 18px' }}>
-              <div className="calc-box" style={{ marginTop: 0 }}>
-                <div className="calc-row">
-                  <span className="k">Saldo base</span>
-                  <span className="v">{fmtCOP(saldoAnterior)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Entradas directas COP</span>
-                  <span className="v">{fmtCOP(entradasDirectas)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Retornos ext.</span>
-                  <span className="v">{fmtCOP(retornosExternos)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Salidas COP + envíos</span>
-                  <span className="v">{fmtCOP(gastos + totalEnvios)}</span>
-                </div>
-                <div className="calc-row total">
-                  <span className="k">Saldo actual COP</span>
-                  <span className="v">{fmtCOP(balance)}</span>
+          {currencySections.map((section) => (
+            <div className="panel" key={section.title} style={{ padding: 0 }}>
+              <div className="panel-header">
+                <div>
+                  <div className="panel-title">{section.title}</div>
+                  <div className="panel-sub">{section.subtitle}</div>
                 </div>
               </div>
-            </div>
-          </div>
+              <div style={{ padding: 18 }}>
+                <div
+                  style={{
+                    borderBottom: '1px solid #22262d',
+                    marginBottom: 14,
+                    paddingBottom: 14,
+                  }}
+                >
+                  <div
+                    className="mono"
+                    style={{
+                      color: '#858a93',
+                      fontSize: 10,
+                      marginBottom: 6,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {section.balanceLabel}
+                  </div>
+                  <div
+                    className="serif"
+                    style={{
+                      color: section.accent,
+                      fontSize: 32,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {section.balanceValue}
+                  </div>
+                </div>
 
-          <div className="panel">
-            <div className="panel-header">
-              <div>
-                <div className="panel-title">Dólares · USD/FL</div>
-                <div className="panel-sub">
-                  Entradas USD + envíos pendientes - salidas USD
+                <div className="calc-box" style={{ marginTop: 0 }}>
+                  {section.rows.map((row) => (
+                    <div className="calc-row" key={row.label}>
+                      <span className="k">{row.label}</span>
+                      <span
+                        className="v"
+                        style={{ color: row.danger ? '#e07575' : undefined }}
+                      >
+                        {row.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <div style={{ padding: '14px 18px' }}>
-              <div className="calc-box" style={{ marginTop: 0 }}>
-                <div className="calc-row">
-                  <span className="k">Entradas USD</span>
-                  <span className="v">{fmtUSD(entradasUsd)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Pendiente Aruba USD</span>
-                  <span className="v">{fmtUSD(cajaArubaUsd)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Salidas USD</span>
-                  <span className="v">{fmtUSD(gastosUsd)}</span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Pendiente FL</span>
-                  <span className="v">
-                    FL {cajaArubaFl.toLocaleString('es-CO')}
-                  </span>
-                </div>
-                <div className="calc-row">
-                  <span className="k">Cambio promedio</span>
-                  <span className="v">
-                    {cambioPromedio > 0 ? fmtCOP(cambioPromedio) : '-'}
-                  </span>
-                </div>
-                <div className="calc-row total">
-                  <span className="k">Saldo USD</span>
-                  <span className="v">{fmtUSD(balanceUsd)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div

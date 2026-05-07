@@ -2,6 +2,7 @@
 
 import type React from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { DashboardSummary } from '@/lib/balance-data';
@@ -162,22 +163,17 @@ export function Sidebar({ summary, trm }: SidebarProps) {
           padding: '4px 8px 20px',
         }}
       >
-        <div
-          className="serif"
+        <Image
+          alt=""
+          height={42}
+          src="/logo.png"
           style={{
-            background: 'linear-gradient(135deg, #d4a574, #8a6d4a)',
-            borderRadius: 6,
-            color: '#0a0b0d',
-            display: 'grid',
-            fontSize: 15,
-            fontWeight: 700,
-            height: 28,
-            placeItems: 'center',
-            width: 28,
+            height: 42,
+            objectFit: 'contain',
+            width: 42,
           }}
-        >
-          D
-        </div>
+          width={42}
+        />
         <span className="serif" style={{ fontSize: 22 }}>
           Divisas
         </span>
