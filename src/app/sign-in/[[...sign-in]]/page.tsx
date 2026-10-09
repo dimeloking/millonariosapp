@@ -2,11 +2,6 @@ import { Suspense } from 'react';
 import { SignInForm } from '@/components/sign-in-form';
 import { UrlDataMarker } from '@/components/url-data-marker';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export default function SignInPage() {
   return (
     <main className="login">

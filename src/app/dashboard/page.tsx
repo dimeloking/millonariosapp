@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   ArrowRight,
   BanknoteArrowDown,
@@ -15,15 +16,11 @@ import {
   MonthlySalesChart,
   type MonthlySalesPoint,
 } from "@/components/monthly-sales-chart";
+import { PageTopbarFallback } from "@/components/page-topbar-fallback";
 import { TopbarActions } from "@/components/topbar-actions";
 import { getDashboardSummary } from "@/lib/balance-data";
 import { fmtUSD } from "@/lib/formatters";
 import { getEnviosData } from "@/lib/movements-data";
-
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 const MONTH_LABELS = [
   "Enero",
@@ -125,7 +122,8 @@ function buildMonthlySales(envios: Awaited<ReturnType<typeof getEnviosData>>) {
   });
 }
 
-export default async function DashboardPage() {
+// Shared business ledger read straight from the database on every request.
+async function DashboardContent() {
   const [summary, envios] = await Promise.all([
     getDashboardSummary(),
     getEnviosData(),
@@ -183,5 +181,13 @@ export default async function DashboardPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<PageTopbarFallback title="Dashboard" />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

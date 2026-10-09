@@ -1,13 +1,21 @@
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { PageTopbarFallback } from "@/components/page-topbar-fallback";
 import { SalidasPageClient } from "@/components/salidas-page-client";
 import { getSalidasData } from "@/lib/movements-data";
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
-export default async function SalidasPage() {
+// Shared business ledger read straight from the database on every request.
+async function SalidasContent() {
+  await connection();
   const rows = await getSalidasData();
 
   return <SalidasPageClient initialRows={rows} />;
+}
+
+export default function SalidasPage() {
+  return (
+    <Suspense fallback={<PageTopbarFallback title="Salidas" />}>
+      <SalidasContent />
+    </Suspense>
+  );
 }

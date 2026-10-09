@@ -1,10 +1,7 @@
+import { Suspense } from 'react';
 import { BalanceView } from '@/components/balance-view';
+import { PageTopbarFallback } from '@/components/page-topbar-fallback';
 import { getBalancePeriodData } from '@/lib/balance-data';
-
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 type BalancePageProps = {
   searchParams?: Promise<{
@@ -22,10 +19,19 @@ function normalizeMonthParam(value: string | string[] | undefined) {
   return undefined;
 }
 
-export default async function BalancePage({ searchParams }: BalancePageProps) {
+// Reads the `mes` search param and the shared ledger at request time.
+async function BalanceContent({ searchParams }: BalancePageProps) {
   const params = searchParams ? await searchParams : {};
   const selectedMonth = normalizeMonthParam(params.mes);
   const data = await getBalancePeriodData(selectedMonth);
 
   return <BalanceView key={data.periodo.mes} data={data} />;
+}
+
+export default function BalancePage({ searchParams }: BalancePageProps) {
+  return (
+    <Suspense fallback={<PageTopbarFallback title="Balance" />}>
+      <BalanceContent searchParams={searchParams} />
+    </Suspense>
+  );
 }

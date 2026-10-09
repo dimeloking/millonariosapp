@@ -1,13 +1,21 @@
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { PageTopbarFallback } from "@/components/page-topbar-fallback";
 import { PendientesPageClient } from "@/components/pendientes-page-client";
 import { getPendientesData } from "@/lib/movements-data";
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
-export default async function PendientesPage() {
+// Shared business ledger read straight from the database on every request.
+async function PendientesContent() {
+  await connection();
   const rows = await getPendientesData();
 
   return <PendientesPageClient initialRows={rows} />;
+}
+
+export default function PendientesPage() {
+  return (
+    <Suspense fallback={<PageTopbarFallback title="Pendientes" />}>
+      <PendientesContent />
+    </Suspense>
+  );
 }
