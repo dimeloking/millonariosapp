@@ -39,8 +39,6 @@
   "files.autoSave": "afterDelay",
   "files.associations": {
     "*.css": "tailwindcss",
-    "*.env": "env",
-    "*.env.production": "env",
     "*.jsx": "javascriptreact",
     "*.tsx": "typescriptreact",
     "*.ts": "typescript",
@@ -108,7 +106,6 @@
   "js/ts.tsserver.maxMemory": 8192,
   // ESLint Configuration
   "eslint.workingDirectories": [{ "mode": "auto" }],
-  "eslint.runtime": "C:\\Users\\Usuario\\AppData\\Roaming\\fnm\\aliases\\default\\node.exe",
   "eslint.run": "onType",
   "eslint.validate": [
     "javascript",
