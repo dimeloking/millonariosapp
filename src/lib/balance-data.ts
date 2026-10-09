@@ -1,4 +1,5 @@
 import { asc, eq } from 'drizzle-orm';
+import { connection } from 'next/server';
 import { db } from '@/db';
 import {
   creditos4x1000,
@@ -48,7 +49,9 @@ export type BalancePeriodData = {
   salidasExternas: SalidaExternaRecord[];
 };
 
-function getCurrentPeriod(): string {
+async function getCurrentPeriod(): Promise<string> {
+  // The default month depends on the request time; opt this read out of prerendering.
+  await connection();
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
@@ -56,7 +59,7 @@ function getCurrentPeriod(): string {
 export async function getBalancePeriodData(
   mes?: string
 ): Promise<BalancePeriodData> {
-  const selectedMes = mes ?? getCurrentPeriod();
+  const selectedMes = mes ?? (await getCurrentPeriod());
 
   try {
     const [periodo] = await db

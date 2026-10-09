@@ -2,6 +2,11 @@ import { ClientTopbarPendingBell } from "@/components/client-topbar-pending-bell
 import { CREDITOS_4X1000, totalCreditos } from "@/lib/data";
 import { fmtCOP, fmtDate } from "@/lib/formatters";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export default function CreditosPage() {
   const sorted = [...CREDITOS_4X1000].sort((a, b) => a.fecha.localeCompare(b.fecha));
 
