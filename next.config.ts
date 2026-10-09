@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Env validation runs here during `next dev` and `next build`.
   cacheComponents: true,
-  // partialPrefetching: true, // enabled in the partial prefetching step
+  partialPrefetching: true,
   typedRoutes: true,
   reactCompiler: true,
   agentRules: false,
